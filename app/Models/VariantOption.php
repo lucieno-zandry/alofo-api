@@ -22,7 +22,7 @@ class VariantOption extends Model
 
     public function variants()
     {
-        return $this->belongsToMany(VariantOption::class);
+        return $this->belongsToMany(Variant::class);
     }
 
     public function variant_group()
