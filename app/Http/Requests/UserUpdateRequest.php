@@ -24,7 +24,7 @@ class UserUpdateRequest extends FormRequest
     {
         $rules = [
             'email' => ['email', 'unique:users'],
-            'password' => ['min:6', 'max:32', 'confirmed'],
+            'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
             'image' => ['nullable', 'image'],
