@@ -18,7 +18,7 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->timestamp('approved_at')->nullable();
-            $table->string('password');
+            $table->string('password')->nullable();
             $table->string('role')->default('client');
             $table->string('image')->nullable();
             $table->foreignIdFor(Address::class)->nullable()->constrained()->nullOnDelete();
