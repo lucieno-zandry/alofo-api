@@ -17,6 +17,8 @@ use Illuminate\Validation\ValidationException;
 use Mail;
 use Password;
 use Storage;
+use Str;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthController extends Controller
 {
@@ -24,9 +26,9 @@ class AuthController extends Controller
     {
         $data = $request->validated();
 
-        $client_code = !empty($data['client_code_id']) ? ClientCode::where('code', $data['client_code_id'])->first() : null;
+        $client_code = !empty($data['client_code']) ? ClientCode::where('code', $data['client_code'])->first() : null;
 
-        if (!empty($data['client_code_id'])) {
+        if (!empty($data['client_code'])) {
             if (!$client_code || $client_code->user_id !== null)
                 throw ValidationException::withMessages([
                     'client_code_id' => [
@@ -34,7 +36,7 @@ class AuthController extends Controller
                     ]
                 ]);
 
-            $data['client_code_id'] = $client_code->id;
+            $data['client_code'] = $client_code->id;
         }
 
         if (!empty($data['image'])) {
@@ -95,7 +97,13 @@ class AuthController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        $token = Password::createToken($user);
+        $token = Str::random(32);
+
+        $inserted = DB::table('password_reset_tokens')
+            ->insert(['email' => $request->email, 'token' => $token]);
+
+        if (!$inserted)
+            throw new HttpException(500, "Failed to create token!");
 
         $link_sent = Mail::to($user)
             ->send(new ResetMail($token));
@@ -139,13 +147,13 @@ class AuthController extends Controller
         $user = User::find(auth()->id());
 
         // If the user uses a client code
-        if (key_exists('client_code_id', $data)) {
-            if (!empty($data['client_code_id'])) {
-                $client_code = ClientCode::where('code', $data['client_code_id'])->first();
+        if (key_exists('client_code', $data)) {
+            if (!empty($data['client_code'])) {
+                $client_code = ClientCode::where('code', $data['client_code'])->first();
 
                 if (!$client_code || $client_code->user_id !== null)
                     throw ValidationException::withMessages([
-                        'client_code_id' => [
+                        'client_code' => [
                             'The client code is not valid.'
                         ]
                     ]);

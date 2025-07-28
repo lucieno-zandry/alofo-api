@@ -19,7 +19,12 @@ class ResetMail extends Mailable
      */
     public function __construct(string $token)
     {
-        $this->reset_url = env('PASSWORD_RESET_URL') . $token;
+        $base_url = env('PASSWORD_RESET_URL');
+        $params = [
+            'token' => $token,
+        ];
+
+        $this->reset_url = $base_url . http_build_query($params);
     }
 
     /**

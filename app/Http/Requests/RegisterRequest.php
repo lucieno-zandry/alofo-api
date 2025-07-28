@@ -27,7 +27,7 @@ class RegisterRequest extends FormRequest
             'name' => ['required', 'min:4', 'max:32'],
             'role' => ['nullable'],
             'image' => ['nullable', 'image'],
-            'client_code_id' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
+            'client_code' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
         ];
     }
 }

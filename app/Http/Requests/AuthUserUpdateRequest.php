@@ -23,14 +23,14 @@ class AuthUserUpdateRequest extends FormRequest
     {
         $rules = [
             'email' => ['email', 'unique:users'],
-            'password' => ['min:6', 'max:32'],
+            'password' => ['min:6', 'max:32', 'confirmed'],
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
             'image' => ['nullable', 'image'],
-            'client_code_id' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
+            'client_code' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
         ];
 
-        if ($this->has('email')) {
+        if ($this->has('email') || $this->has('password')) {
             $rules['current_password'] = ['required', 'current_password'];
         }
 
