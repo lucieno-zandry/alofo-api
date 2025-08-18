@@ -8,11 +8,21 @@ use App\Http\Requests\ClientCodeDeleteRequest;
 use App\Http\Requests\ClientCodeUpdateRequest;
 use App\Models\ClientCode;
 use App\Models\User;
+use App\Rules\ClientCodeIsUsableRule;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ClientCodeController extends Controller
 {
+    public function check_client_code_usability(Request $request): array
+    {
+        $request->validate(['client_code' => new ClientCodeIsUsableRule]);
+
+        return [
+            'usable' => true
+        ];
+    }
+
     public function store(ClientCodeCreateRequest $request)
     {
         $data = $request->validated();

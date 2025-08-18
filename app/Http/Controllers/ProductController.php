@@ -87,7 +87,16 @@ class ProductController extends Controller
 
     public function show(int $id)
     {
-        $product = Product::withRelations()->find($id);
+        $product = Product::withRelations()->with(
+            [
+                'variant_groups' => function ($query) {
+                    $query->with('variant_options');
+                },
+                'variants' => function ($query) {
+                    $query->with('variant_options');
+                }
+            ]
+        )->find($id);
 
         return [
             'product' => $product

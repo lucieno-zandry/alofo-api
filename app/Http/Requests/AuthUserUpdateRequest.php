@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\ClientCodeIsUsableRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AuthUserUpdateRequest extends FormRequest
@@ -27,7 +28,7 @@ class AuthUserUpdateRequest extends FormRequest
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
             'image' => ['nullable', 'image'],
-            'client_code' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
+            'client_code' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6', new ClientCodeIsUsableRule]
         ];
 
         if ($this->has('email') || $this->has('password')) {

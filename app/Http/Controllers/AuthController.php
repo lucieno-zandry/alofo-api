@@ -28,15 +28,9 @@ class AuthController extends Controller
 
         $client_code = !empty($data['client_code']) ? ClientCode::where('code', $data['client_code'])->first() : null;
 
-        if (!empty($data['client_code'])) {
-            if (!$client_code || $client_code->user_id !== null)
-                throw ValidationException::withMessages([
-                    'client_code_id' => [
-                        'The client code is not valid.'
-                    ]
-                ]);
-
-            $data['client_code'] = $client_code->id;
+        if ($client_code) {
+            unset($data['client_code']);
+            $data['client_code_id'] = $client_code->id;
         }
 
         if (!empty($data['image'])) {
@@ -46,6 +40,10 @@ class AuthController extends Controller
                 throw ValidationException::withMessages(['image' => 'Failed to store image']);
 
             $data['image'] = $path;
+        }
+
+        if (empty($data['password'])) {
+            $data['password'] = "000000";
         }
 
         $user = User::create($data);

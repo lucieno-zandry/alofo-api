@@ -42,7 +42,7 @@ class Variant extends Model
 
     public function variant_options()
     {
-        return $this->belongsToMany(VariantOption::class);
+        return $this->belongsToMany(VariantOption::class, 'variant_variant_option');
     }
 
     public function promotions()

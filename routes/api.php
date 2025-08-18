@@ -44,6 +44,12 @@ Route::prefix('auth')
             });
     });
 
+Route::prefix('client-code')
+    ->controller(ClientCodeController::class)
+    ->group(function () {
+        Route::post('check_usability', 'check_client_code_usability');
+    });
+
 Route::prefix('category')
     ->controller(CategoryController::class)
     ->group(function () {

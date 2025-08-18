@@ -11,10 +11,8 @@ class CategoryHelpers
         $categories = Category::where('parent_id', $id ?? null)->get();
 
         $hierarchy = $categories->map(function (Category $category) {
-            return [
-                'category' => $category,
-                'children' => self::get_hierarchy($category->id),
-            ];
+            $category->__set('children', self::get_hierarchy($category->id));
+            return $category;
         })->all();
 
         return $hierarchy;
