@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Models\Variant;
 use App\Models\VariantGroup;
 use App\Models\VariantOption;
+use DB;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -51,10 +52,46 @@ class DatabaseSeeder extends Seeder
         }
 
         for ($i = 1; $i < 17; $i++) {
-            Product::factory(10)->create(['category_id' => $i ]);
+            Product::factory(10)->create(['category_id' => $i]);
             VariantGroup::factory(2)->create(['product_id' => $i]);
             VariantOption::factory(2)->create(['variant_group_id' => $i]);
             Variant::factory(5)->create(['product_id' => $i]);
+            DB::table('variant_variant_option')->insert(
+                [
+                    [
+                        'variant_id' => 1,
+                        'variant_option_id' => 1,
+                    ],
+                    [
+                        'variant_id' => 1,
+                        'variant_option_id' => 3,
+                    ],
+                    [
+                        'variant_id' => 2,
+                        'variant_option_id' => 1,
+                    ],
+                    [
+                        'variant_id' => 2,
+                        'variant_option_id' => 4,
+                    ],
+                    [
+                        'variant_id' => 3,
+                        'variant_option_id' => 2,
+                    ],
+                    [
+                        'variant_id' => 3,
+                        'variant_option_id' => 3,
+                    ],
+                    [
+                        'variant_id' => 4,
+                        'variant_option_id' => 2,
+                    ],
+                    [
+                        'variant_id' => 4,
+                        'variant_option_id' => 4,
+                    ]
+                ]
+            );
         }
     }
 }
