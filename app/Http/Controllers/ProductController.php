@@ -9,7 +9,7 @@ use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
-use Storage;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -85,9 +85,12 @@ class ProductController extends Controller
         ];
     }
 
-    public function show(int $id)
+    public function show(string $slug)
     {
-        $product = Product::withRelations()->find($id);
+        $product = Product::with([
+            'variant_groups' => fn($query) => $query->with('variant_options'),
+            'variants' => fn($query) => $query->with('variant_options'),
+        ])->where('slug', $slug)->first();
 
         return [
             'product' => $product

@@ -56,7 +56,7 @@ Route::prefix('product')
     ->controller(ProductController::class)
     ->group(function () {
         Route::get('all', 'index');
-        Route::get('get/{id}', 'show');
+        Route::get('get/{slug}', 'show');
         Route::get('search/{keywords}', 'search');
     });
 

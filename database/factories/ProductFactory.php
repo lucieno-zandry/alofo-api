@@ -19,6 +19,7 @@ class ProductFactory extends Factory
         return [
             'title' => fake()->title(),
             'description' => fake()->text(),
+            'slug' => fake()->slug()
         ];
     }
 }

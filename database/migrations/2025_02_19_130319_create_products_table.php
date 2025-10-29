@@ -15,13 +15,14 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
+            $table->string('slug')->unique();
             $table->string('title');
             $table->text('description')->nullable();
             $table->foreignIdFor(Category::class);
             $table->fullText(['title', 'description']);
         });
     }
-
+ 
     /**
      * Reverse the migrations.
      */

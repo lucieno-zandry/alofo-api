@@ -26,7 +26,8 @@ class ProductCreateRequest extends FormRequest
             'description' => ['nullable'],
             'category_id' => ['required', 'exists:categories,id'],
             'images' => ['nullable', 'array', 'max:4'],
-            'images[*]' => ['image']
+            'images[*]' => ['image'],
+            'slug' => ['required', 'unique:products,slug']
         ];
     }
 }
