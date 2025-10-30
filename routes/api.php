@@ -15,6 +15,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\VariantGroupController;
 use App\Http\Controllers\VariantOptionController;
+use App\Http\Middleware\CustomSanctumAuth;
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsApproved;
 use Illuminate\Support\Facades\Route;
@@ -32,15 +33,14 @@ Route::prefix('auth')
 
         Route::prefix('email')->group(function () {
             Route::post('info', 'email_info');
-            Route::get('confirm', 'email_confirm')->middleware('auth:sanctum');
-            Route::post('verify', 'email_verify')->middleware('auth:sanctum');
+            Route::get('confirm', 'email_confirm')->middleware(CustomSanctumAuth::class);
+            Route::post('verify', 'email_verify')->middleware(CustomSanctumAuth::class);
         });
 
         Route::prefix('user')
-            ->middleware('auth:sanctum')
             ->group(function () {
-                Route::post('update', 'update');
-                Route::get('get', 'show');
+                Route::post('update', 'update')->middleware(CustomSanctumAuth::class);
+                Route::get('get', 'show')->middleware('auth:sanctum');
             });
     });
 
@@ -88,7 +88,7 @@ Route::prefix('coupon')
         Route::get('all', 'index');
     });
 
-Route::middleware(['auth:sanctum', EnsureEmailIsVerified::class])
+Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
     ->group(function () {
         Route::prefix('address')
             ->controller(AddressController::class)
