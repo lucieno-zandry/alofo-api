@@ -18,9 +18,9 @@ class CartItemHelpers
         $cart_item->promotion_discount_applied = 0;
 
         $variant = Variant::find($data['variant_id']);
-        $unit_price = $variant->get_price();
+        $cart_item->unit_price = $variant->get_price();
 
-        $cart_item->total = $unit_price * $data['count'];
+        $cart_item->total = $cart_item->unit_price * $data['count'];
 
         if ($promotion) {
             $cart_item->total = DiscountHelpers::apply_discount($promotion, $cart_item->total);

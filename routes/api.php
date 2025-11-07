@@ -33,13 +33,13 @@ Route::prefix('auth')
 
         Route::prefix('email')->group(function () {
             Route::post('info', 'email_info');
-            Route::get('confirm', 'email_confirm')->middleware(CustomSanctumAuth::class);
-            Route::post('verify', 'email_verify')->middleware(CustomSanctumAuth::class);
+            Route::middleware(CustomSanctumAuth::class)->post('send-validation-code', 'send_validation_code');
+            Route::middleware(CustomSanctumAuth::class)->post('verify', 'email_verify');
         });
 
         Route::prefix('user')
             ->group(function () {
-                Route::post('update', 'update')->middleware(CustomSanctumAuth::class);
+                Route::middleware(CustomSanctumAuth::class)->post('update', 'update');
                 Route::get('get', 'show')->middleware('auth:sanctum');
             });
     });
@@ -105,7 +105,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
             ->group(function () {
                 Route::get('get/{cart_item_id}', 'show');
                 Route::get('all', 'index');
-                Route::post('create', 'store')->name('create');
+                Route::post('create/{variant}', 'store')->name('create');
                 Route::put('update/{cart_item}', 'update');
                 Route::delete('delete', 'destroy');
             });

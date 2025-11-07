@@ -68,4 +68,19 @@ class Functions
             ->implode(' ');
     }
 
+    /**
+     * @param VariantOption[] $variant_options
+     * @return Map[]
+     */
+    public static function get_variant_options_snapshot($variant_options)
+    {
+        $variant_options_snapshot = [];
+
+        foreach ($variant_options as $option) {
+            $groupName = $option->variant_group->name;
+            $variant_options_snapshot[$groupName] = $option->value;
+        }
+
+        return $variant_options_snapshot;
+    }
 }

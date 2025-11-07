@@ -3,6 +3,7 @@
 use App\Models\Promotion;
 use App\Models\User;
 use App\Models\Variant;
+use App\Models\Product;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,12 +19,16 @@ return new class extends Migration {
             $table->timestamps();
             $table->smallInteger('count');
             $table->foreignUuid('order_uuid')->nullable();
-            // $table->foreignId('order_id')->nullable();
             $table->foreignIdFor(Variant::class);
+            $table->foreignIdFor(Product::class);
             $table->foreignIdFor(Promotion::class)->nullable();
             $table->float('promotion_discount_applied')->nullable();
             $table->float('total');
             $table->foreignIdFor(User::class);
+            $table->json("product_snapshot");
+            $table->json("variant_snapshot");
+            $table->json("variant_options_snapshot");
+            $table->float('unit_price');
         });
     }
 

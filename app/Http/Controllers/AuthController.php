@@ -13,6 +13,7 @@ use App\Models\User;
 use DB;
 use Hash;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Mail;
 use Password;
@@ -196,7 +197,7 @@ class AuthController extends Controller
         ];
     }
 
-    public function email_confirm(EmailConfirmationHelpers $helpers)
+    public function send_validation_code(EmailConfirmationHelpers $helpers, Request $request)
     {
         return [
             'link_sent' => $helpers->handle_confirmation()

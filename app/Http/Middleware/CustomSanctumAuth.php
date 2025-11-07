@@ -9,13 +9,17 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomSanctumAuth
 {
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
-        if (!Auth::guard('sanctum')->check()) {
+        Auth::shouldUse('sanctum');
+
+        try {
+            Auth::guard('sanctum')->authenticate();
+        } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Forbidden',
-                'status' => 403,
-                'action' => 'AUTHENTICATE'
+                'status'  => 403,
+                'action'  => 'AUTHENTICATE'
             ], 403);
         }
 

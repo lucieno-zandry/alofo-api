@@ -19,7 +19,12 @@ class CartItem extends Model
         'count',
         'variant_id',
         'promotion_id',
-        'user_id'
+        'user_id',
+        'product_id',
+        'unit_price',
+        'variant_options_snapshot',
+        'variant_snapshot',
+        'product_snapshot'
     ];
 
     public function is_not_ordered()
@@ -30,6 +35,11 @@ class CartItem extends Model
     public function variant()
     {
         return $this->belongsTo(Variant::class);
+    }
+
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
     }
 
     public function promotion()

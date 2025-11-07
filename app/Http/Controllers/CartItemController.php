@@ -15,11 +15,23 @@ use App\Models\Variant;
 class CartItemController extends Controller
 {
 
-    public function store(CartItemCreateRequest $request)
+    public function store(CartItemCreateRequest $request, Variant $variant)
     {
         $data = $request->validated();
 
         $data['user_id'] = auth()->id();
+        $data['variant_id'] = $variant->id;
+        $data['product_id'] = $variant->product_id;
+
+        // make snapshot before loading relationships
+        $data['variant_snapshot'] = json_encode($variant);
+
+        $variant->load(['product', 'variant_options.variant_group']);
+
+        $data['product_snapshot'] = json_encode($variant->product);
+        $variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
+
+        $data['variant_options_snapshot'] = json_encode($variant_options_snapshot);
 
         $cart_item = CartItemHelpers::make_item(
             new CartItem(),

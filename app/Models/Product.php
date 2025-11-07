@@ -41,4 +41,9 @@ class Product extends Model
     {
         return $this->hasMany(VariantGroup::class);
     }
+
+    public function cart_items()
+    {
+        return $this->hasMany(CartItem::class);
+    }
 }
