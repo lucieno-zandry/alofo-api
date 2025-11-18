@@ -30,7 +30,7 @@ class AuthUserUpdateRequest extends FormRequest
             'client_code_id' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
         ];
 
-        if ($this->has('email')) {
+        if ($this->has('email') || $this->has('password')) {
             $rules['current_password'] = ['required', 'current_password'];
         }
 
