@@ -10,14 +10,16 @@ use App\Http\Requests\RegisterRequest;
 use App\Mail\Auth\Password\ResetMail;
 use App\Models\ClientCode;
 use App\Models\User;
-use DB;
-use Hash;
+use DateInterval;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Mail;
-use Password;
-use Storage;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthController extends Controller
 {
@@ -95,8 +97,17 @@ class AuthController extends Controller
         ]);
 
         $user = User::where('email', $request->email)->first();
+        $token = Str::random(32);
 
-        $token = Password::createToken($user);
+        $token_table = DB::table('password_reset_tokens');
+
+        // delete any token before creating another
+        $token_table->where('email', $request->email)->delete();
+
+        $token_table->insert([
+            'email' => $request->email,
+            'token' => $token,
+        ]);
 
         $link_sent = Mail::to($user)
             ->send(new ResetMail($token));
@@ -113,19 +124,27 @@ class AuthController extends Controller
             'password' => ['required', 'min:6', 'confirmed']
         ]);
 
-        $Token = DB::table('password_reset_tokens');
+        $token_table = DB::table('password_reset_tokens');
+        $token = $token_table->where('token', $request->token)->first();
 
-        $token = $Token->where('token', $request->token)->first();
+        if (!$token) throw HttpException::fromStatusCode(403, 'Forbidden');
+
+        $now = date_create();
+        $created_at = date_create($token->created_at);
+        $expired_at = date_add($created_at, DateInterval::createFromDateString('15 minutes'));
+
+        if ($expired_at < $now) throw HttpException::fromStatusCode(403, 'Forbidden');
+
         $user = User::where('email', $token->email)->first();
 
         if (!$user)
-            throw ValidationException::withMessages(['token' => 'User not found!']);
+            throw HttpException::fromStatusCode(403, 'Forbidden');
 
         $user->password = $request->password;
         $user->save();
 
         //Delete used token
-        $Token->where('email', $user->email)->delete();
+        $token_table->where('email', $user->email)->delete();
 
         return [
             'token' => $user->createToken('device')->plainTextToken,
