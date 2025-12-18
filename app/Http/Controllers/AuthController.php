@@ -12,7 +12,6 @@ use App\Models\ClientCode;
 use App\Models\User;
 use DateInterval;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;

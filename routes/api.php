@@ -94,7 +94,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
             ->controller(AddressController::class)
             ->group(function () {
                 Route::post('create', 'store');
-                Route::put('update/{address}', 'update');
+                Route::post('update/{address}', 'update');
                 Route::get('all', 'index');
                 Route::delete('delete', 'destroy');
             });

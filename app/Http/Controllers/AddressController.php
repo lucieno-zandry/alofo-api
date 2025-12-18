@@ -12,10 +12,24 @@ class AddressController extends Controller
     public function store(AddressCreateRequest $request): array
     {
         $data = $request->validated();
+
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if (array_key_exists('is_default', $data)) {
+            unset($data['is_default']);
+        }
+
         $address = Address::create($data);
 
+        if ($request->has('is_default') && $request->is_default) {
+            $user->address_id = $address->id;
+            $user->save();
+        }
+
         return [
-            'address' => $address
+            'address' => $address,
+            'user' => $user,
         ];
     }
 
@@ -23,10 +37,27 @@ class AddressController extends Controller
     {
         $data = $request->validated();
 
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if (array_key_exists('is_default', $data)) {
+            unset($data['is_default']);
+        }
+
         $address->update($data);
 
+        if ($request->has('is_default')) {
+            if ($request->is_default) {
+                $user->address_id = $address->id;
+            } else {
+                $user->address_id = null;
+            }
+            $user->save();
+        }
+
         return [
-            'address' => $address
+            'address' => $address,
+            'user' => $user,
         ];
     }
 
