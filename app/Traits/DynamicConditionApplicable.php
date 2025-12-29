@@ -10,18 +10,29 @@ trait DynamicConditionApplicable
     {
         $whereClause = request('where');
 
+        if (empty($whereClause)) {
+            return $query;
+        }
+
         // Split conditions by commas
         $conditions = explode(',', $whereClause);
 
         foreach ($conditions as $condition) {
-            // Use regex to match the field, operator, and value
-            if (preg_match('/^([^<>=!]+)([<>!=]*=|[<>!]+)(.+)$/', $condition, $matches)) {
-                $field = $matches[1];
-                $operator = $matches[2]; // Includes support for '='
-                $value = $matches[3];
+            // Regex captures: 1. Field Name, 2. Operator, 3. Value
+            if (preg_match('/^([^<>=!:]+)([<>!=]*=|[:<>!]+)(.+)$/', $condition, $matches)) {
+                $field = trim($matches[1]);
+                $operator = $matches[2];
+                $value = trim($matches[3]);
 
-                // Apply the condition to the query
-                $query->where($field, $operator, $value);
+                // Check for whereIn syntax (e.g., status:1|2|3 or field:value1,value2)
+                // Using ':' as a shorthand for 'IN' or checking if value contains a pipe '|'
+                if ($operator === ':' || str_contains($value, '|')) {
+                    $values = explode('|', $value);
+                    $query->whereIn($field, $values);
+                } else {
+                    // Standard where clause
+                    $query->where($field, $operator, $value);
+                }
             }
         }
 

@@ -27,6 +27,12 @@ class CartItem extends Model
         'product_snapshot'
     ];
 
+    protected $casts = [
+        'product_snapshot' => 'array',
+        'variant_snapshot' => 'array',
+        'variant_options_snapshot' => 'array',
+    ];
+
     public function is_not_ordered()
     {
         return !$this->order || $this->order->has_no_successful_payment();

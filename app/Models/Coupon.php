@@ -7,11 +7,13 @@ use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters;
+    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasFactory;
+    
     protected $fillable = [
         'code',
         'type',

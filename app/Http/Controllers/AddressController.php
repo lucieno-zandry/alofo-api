@@ -63,9 +63,16 @@ class AddressController extends Controller
 
     public function index()
     {
+        $defaultAddressId = auth()->user()->address_id;
+
         $addresses = Address::applyFilters()
             ->where('user_id', auth()->id())
-            ->get();
+            ->get()
+            ->map(function ($address) use ($defaultAddressId) {
+                // Add a dynamic attribute
+                $address->is_default = $address->id === $defaultAddressId;
+                return $address;
+            });
 
         return [
             'addresses' => $addresses
@@ -75,6 +82,14 @@ class AddressController extends Controller
     public function destroy(AddressDeleteRequest $request)
     {
         $ids = explode(',', $request->address_ids);
+        /** @var \App\Models\User $user */
+        $user = auth()->user();
+
+        if (in_array($user->address_id, $ids)) {
+            $user->address_id = null;
+            $user->save();
+        }
+
         $deleted = Address::whereIn('id', $ids)->delete();
 
         return [

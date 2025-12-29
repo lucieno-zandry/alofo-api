@@ -18,6 +18,10 @@ class Order extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+    protected $casts = [
+        'address_snapshot' => 'array',
+        'coupon_snapshot'  => 'array',
+    ];
 
     protected $fillable = [
         'address_id',

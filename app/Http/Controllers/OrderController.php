@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Functions;
 use App\Helpers\OrderHelpers;
 use App\Http\Requests\OrderCreateRequest;
 use App\Http\Requests\OrderDeleteRequest;
 use App\Http\Requests\OrderUpdateRequest;
+use App\Models\Address;
 use App\Models\CartItem;
+use App\Models\Coupon;
 use App\Models\Order;
+use Illuminate\Validation\ValidationException;
 use Str;
 
 class OrderController extends Controller
@@ -22,12 +26,32 @@ class OrderController extends Controller
             ->get();
 
         if ($cart_items->isEmpty())
-            return abort(403, "This cart has already been ordered.");
+            abort(403, "This cart has already been ordered.");
 
         $order = new Order();
         $order->uuid = Str::uuid()->toString();
 
+        // Build order (totals, discounts, etc.)
         $order = OrderHelpers::make_order($order, $cart_items, $data);
+
+        // 🔹 Address snapshot
+        $address = Address::where('id', $data['address_id'])
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        $order->address_snapshot = Functions::get_address_snapshot($address);
+
+        // 🔹 Coupon snapshot (optional)
+        if (!empty($data['coupon_id'])) {
+            $coupon = Coupon::findOrFail($data['coupon_id']);
+            
+            if ($order->total < $coupon->min_order_value)
+                throw ValidationException::withMessages([
+                    'coupon_id' => "The minimum value of the order for this coupon is {$coupon->min_order_value}"
+                ]);
+
+            $order->coupon_snapshot = Functions::get_coupon_snapshot($coupon);
+        }
 
         $order->save();
 

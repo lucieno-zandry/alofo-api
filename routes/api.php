@@ -191,6 +191,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
             Route::prefix('coupon')
                 ->controller(CouponController::class)
                 ->group(function () {
+                    Route::get('get/{code}', 'show');
                     Route::post('create', 'store');
                     Route::put('update/{coupon}', 'update');
                     Route::delete('delete', 'destroy');

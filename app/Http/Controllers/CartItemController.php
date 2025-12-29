@@ -28,7 +28,14 @@ class CartItemController extends Controller
 
         $variant->load(['product', 'variant_options.variant_group']);
 
-        $data['product_snapshot'] = json_encode($variant->product);
+        $data['product_snapshot'] = [
+            'id' => $variant->product->id,
+            'title' => $variant->product->title,
+            'slug' => $variant->product->slug,
+            'category_id' => $variant->product->category_id,
+            'main_image' => $variant->product->main_image,
+        ];
+
         $variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
 
         $data['variant_options_snapshot'] = json_encode($variant_options_snapshot);

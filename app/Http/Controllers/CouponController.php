@@ -30,9 +30,11 @@ class CouponController extends Controller
         ];
     }
 
-    public function show(int $coupon_id)
+    public function show(string $code)
     {
-        $coupon = Coupon::withRelations()->find($coupon_id);
+        $coupon = Coupon::withRelations()->where("code", $code)->first();
+        
+        if (!$coupon || !$coupon->is_active() || !$coupon->is_usable()) $coupon = null;
 
         return [
             'coupon' => $coupon
