@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TransactionStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class TransactionUpdateRequest extends FormRequest
 {
@@ -11,7 +13,7 @@ class TransactionUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->transaction?->status !== TransactionStatus::SUCCESS->value;
     }
 
     /**
@@ -22,7 +24,7 @@ class TransactionUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['string'],
+            'status' => [Rule::enum(TransactionStatus::class)],
             'informations' => ['nullable'],
         ];
     }

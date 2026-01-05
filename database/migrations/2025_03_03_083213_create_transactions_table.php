@@ -12,13 +12,17 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            $table->id();
+            // $table->id();
+            $table->uuid()->primary();
             $table->timestamps();
-            $table->enum('status', ['FAILED', 'PENDING', 'SUCCESS']);
-            $table->string('informations')->nullable();
+            $table->enum('status', ['FAILED', 'PENDING', 'SUCCESS'])->default('PENDING');
+            $table->json('informations')->nullable();
             $table->foreignIdFor(User::class);
             $table->foreignUuid('order_uuid');
             $table->softDeletes();
+            $table->enum('method', ['VISA', 'MASTERCARD', 'ORANGEMONEY', 'AIRTELMONEY', 'MVOLA', 'PAYPAL']);
+            $table->text('payment_url')->nullable();
+            $table->float('amount')->default(0);
         });
     }
 

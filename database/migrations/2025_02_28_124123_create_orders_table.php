@@ -22,6 +22,8 @@ return new class extends Migration {
             $table->foreignId('coupon_id')->nullable();
             $table->float('coupon_discount_applied')->nullable();
             $table->softDeletes();
+            $table->json('address_snapshot');
+            $table->json('coupon_snapshot')->nullable();
         });
     }
 

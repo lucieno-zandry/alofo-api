@@ -9,10 +9,8 @@ use App\Http\Requests\OrderDeleteRequest;
 use App\Http\Requests\OrderUpdateRequest;
 use App\Models\Address;
 use App\Models\CartItem;
-use App\Models\Coupon;
 use App\Models\Order;
-use Illuminate\Validation\ValidationException;
-use Str;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
@@ -40,18 +38,6 @@ class OrderController extends Controller
             ->firstOrFail();
 
         $order->address_snapshot = Functions::get_address_snapshot($address);
-
-        // 🔹 Coupon snapshot (optional)
-        if (!empty($data['coupon_id'])) {
-            $coupon = Coupon::findOrFail($data['coupon_id']);
-            
-            if ($order->total < $coupon->min_order_value)
-                throw ValidationException::withMessages([
-                    'coupon_id' => "The minimum value of the order for this coupon is {$coupon->min_order_value}"
-                ]);
-
-            $order->coupon_snapshot = Functions::get_coupon_snapshot($coupon);
-        }
 
         $order->save();
 
@@ -97,7 +83,7 @@ class OrderController extends Controller
         $order = Order::withRelations()->where('uuid', $order_uuid)->first();
 
         if ($order?->has_no_successful_payment())
-            OrderHelpers::refresh_order($order);
+            $order = OrderHelpers::refresh_order($order);
 
         return [
             'order' => $order

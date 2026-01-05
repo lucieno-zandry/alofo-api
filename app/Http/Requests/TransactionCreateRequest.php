@@ -2,8 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\TransactionMethod;
+use App\Enums\TransactionStatus;
 use App\Rules\NoSuccessfulPayment;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class TransactionCreateRequest extends FormRequest
 {
@@ -23,9 +27,11 @@ class TransactionCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string'],
+            'status' => [Rule::enum(TransactionStatus::class), 'not_in:SUCCESS'],
             'informations' => ['nullable'],
-            'order_uuid' => ['required', 'exists:orders,uuid', new NoSuccessfulPayment]
+            'order_uuid' => ['required', 'exists:orders,uuid', new NoSuccessfulPayment],
+            'method' => ['required', Rule::enum(TransactionMethod::class)],
+            'amount' => ['required', 'numeric', 'min:0']
         ];
     }
 }

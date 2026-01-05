@@ -14,6 +14,10 @@ class Transaction extends Model
 {
     use WithRelationships, WithPagination, WithOrdering, ApplyFilters, DynamicConditionApplicable, CustomerFilterable;
 
+    protected $primaryKey = 'uuid';
+    public $incrementing = false;
+    protected $keyType = 'string';
+
     public static $STATUS_SUCCESS = 'SUCCESS';
     public static $STATUS_FAILED = 'FAILED';
     public static $STATUS_PENDING = 'PENDING';
@@ -22,7 +26,11 @@ class Transaction extends Model
         'status',
         'informations',
         'user_id',
-        'order_uuid'
+        'order_uuid',
+        'amount',
+        'payment_url',
+        'uuid',
+        'method'
     ];
 
     public function user()

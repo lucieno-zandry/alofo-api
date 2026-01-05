@@ -9,8 +9,9 @@ use App\Http\Requests\CartItemCreateRequest;
 use App\Http\Requests\CartItemDeleteRequest;
 use App\Http\Requests\CartItemUpdateRequest;
 use App\Models\CartItem;
-use App\Models\Promotion;
 use App\Models\Variant;
+
+use function Illuminate\Log\log;
 
 class CartItemController extends Controller
 {
@@ -23,30 +24,11 @@ class CartItemController extends Controller
         $data['variant_id'] = $variant->id;
         $data['product_id'] = $variant->product_id;
 
-        // make snapshot before loading relationships
-        $data['variant_snapshot'] = json_encode($variant);
-
-        $variant->load(['product', 'variant_options.variant_group']);
-
-        $data['product_snapshot'] = [
-            'id' => $variant->product->id,
-            'title' => $variant->product->title,
-            'slug' => $variant->product->slug,
-            'category_id' => $variant->product->category_id,
-            'main_image' => $variant->product->main_image,
-        ];
-
-        $variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
-
-        $data['variant_options_snapshot'] = json_encode($variant_options_snapshot);
-
         $cart_item = CartItemHelpers::make_item(
             new CartItem(),
             $data,
             $request->promotion
         );
-
-        $cart_item->save();
 
         return [
             'cart_item' => $cart_item

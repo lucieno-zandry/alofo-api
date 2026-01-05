@@ -9,6 +9,9 @@ use App\Http\Requests\TransactionDeleteRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+
+use function Illuminate\Log\log;
 
 class TransactionController extends Controller
 {
@@ -17,7 +20,19 @@ class TransactionController extends Controller
         $data = $request->validated();
         $data['user_id'] = auth()->id();
 
+        $uuid = Str::uuid()->toString();
+        $data['uuid'] = $uuid;
+
+        // À mettre à jour lors d'une réelle mise en place de méthode de paiement;
+
+        $token = request()->header('Authorization');
+        $redirect_url = "http://localhost:5173/order/{$request->order_uuid}";
+        $payment_url = "http://127.0.0.1:5500/index.html?amount={$request->amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}";
+
+        $data['payment_url'] = urlencode($payment_url);
+
         $transaction = Transaction::create($data);
+        $transaction->payment_url = $payment_url;
 
         Payment::dispatchIf($transaction->status === Transaction::$STATUS_SUCCESS, $transaction->order);
 

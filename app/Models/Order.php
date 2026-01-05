@@ -8,6 +8,7 @@ use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
@@ -61,5 +62,23 @@ class Order extends Model
     public function shipments()
     {
         return $this->hasMany(Shipment::class);
+    }
+
+    public function scopeWithRelations(Builder $query)
+    {
+        if (request()->has('with')) {
+            $relations = explode(',', request('with'));
+
+            foreach ($relations as $relation) {
+                $query->with([
+                    $relation => function ($query) use ($relation) {
+                        $id = $relation === 'transactions' ? 'uuid' : 'id';
+                        $query->latest($id);
+                    }
+                ]);
+            }
+        }
+
+        return $query;
     }
 }
