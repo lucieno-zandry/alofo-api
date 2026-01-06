@@ -3,10 +3,10 @@
 namespace App\Listeners;
 
 use App\Events\Payment;
+use App\Notifications\PaymentSuccess;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
 
-class UseCoupon implements ShouldQueue
+class NotifyBuyerTransactionSuccess implements ShouldQueue
 {
     /**
      * Create the event listener.
@@ -21,11 +21,10 @@ class UseCoupon implements ShouldQueue
      */
     public function handle(Payment $event): void
     {
-        $coupon = $event->coupon;
+        $order = $event->order;
+        $transaction = $event->transaction;
 
-        if ($coupon) {
-            $coupon->uses_count++;
-            $coupon->save();
-        }
+        $user = $order->user;
+        $user->notify(new PaymentSuccess($transaction, $order));
     }
 }

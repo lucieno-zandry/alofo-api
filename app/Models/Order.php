@@ -63,22 +63,4 @@ class Order extends Model
     {
         return $this->hasMany(Shipment::class);
     }
-
-    public function scopeWithRelations(Builder $query)
-    {
-        if (request()->has('with')) {
-            $relations = explode(',', request('with'));
-
-            foreach ($relations as $relation) {
-                $query->with([
-                    $relation => function ($query) use ($relation) {
-                        $id = $relation === 'transactions' ? 'uuid' : 'id';
-                        $query->latest($id);
-                    }
-                ]);
-            }
-        }
-
-        return $query;
-    }
 }

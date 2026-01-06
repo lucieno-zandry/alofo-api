@@ -2,6 +2,7 @@
 
 namespace App\Rules;
 
+use App\Enums\TransactionStatus;
 use App\Models\Order;
 use App\Models\Transaction;
 use Closure;
@@ -16,7 +17,9 @@ class NoSuccessfulPayment implements ValidationRule
      */
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        $successful_transaction = Transaction::where('order_uuid', $value)->first();
+        $successful_transaction = Transaction::where('order_uuid', $value)
+            ->where('status', TransactionStatus::SUCCESS->value)
+            ->first();
 
         if (!$successful_transaction)
             return;

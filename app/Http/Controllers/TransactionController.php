@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\TransactionStatus;
+use App\Events\FailedPayment;
 use App\Events\Payment;
 use App\Helpers\Functions;
 use App\Http\Requests\TransactionCreateRequest;
@@ -34,7 +36,8 @@ class TransactionController extends Controller
         $transaction = Transaction::create($data);
         $transaction->payment_url = $payment_url;
 
-        Payment::dispatchIf($transaction->status === Transaction::$STATUS_SUCCESS, $transaction->order);
+        Payment::dispatchIf($transaction->status === TransactionStatus::SUCCESS->value, $transaction->order, $transaction);
+        FailedPayment::dispatchIf($transaction->status === TransactionStatus::FAILED->value, $transaction->order, $transaction);
 
         return [
             'transaction' => $transaction
@@ -47,7 +50,8 @@ class TransactionController extends Controller
 
         $transaction->update($data);
 
-        Payment::dispatchIf($transaction->status === Transaction::$STATUS_SUCCESS, $transaction->order);
+        Payment::dispatchIf($transaction->status === TransactionStatus::SUCCESS->value, $transaction->order, $transaction);
+        FailedPayment::dispatchIf($transaction->status === TransactionStatus::FAILED->value, $transaction->order, $transaction);
 
         return [
             'transation' => $transaction

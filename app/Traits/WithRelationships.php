@@ -14,7 +14,7 @@ trait WithRelationships
             foreach ($relations as $relation) {
                 $query->with([
                     $relation => function ($query) {
-                        $query->latest('id');
+                        $query->latest('updated_at');
                     }
                 ]);
             }

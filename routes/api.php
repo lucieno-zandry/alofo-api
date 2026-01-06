@@ -6,6 +6,7 @@ use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientCodeController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
@@ -216,5 +217,14 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                     Route::put('update/{shipment}', 'update');
                     Route::delete('delete', 'destroy');
                 });
+
+            Route::prefix('notifications')->controller(NotificationController::class)->group(function () {
+                Route::get('', 'index');
+                Route::get('unread', 'unread');
+                Route::patch('{id}/read', 'markAsRead');
+                Route::post('mark-all-read', 'markAllAsRead');
+                Route::delete('{id}', 'destroy');
+                Route::delete('clear-read', 'clearRead');
+            });
         });
     });
