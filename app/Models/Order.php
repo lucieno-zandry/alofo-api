@@ -10,10 +10,11 @@ use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, CustomerFilterable, DynamicConditionApplicable, ApplyFilters;
+    use WithOrdering, WithPagination, WithRelationships, CustomerFilterable, DynamicConditionApplicable, ApplyFilters, SoftDeletes;
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;

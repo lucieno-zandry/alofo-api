@@ -10,6 +10,7 @@ use App\Http\Requests\TransactionCreateRequest;
 use App\Http\Requests\TransactionDeleteRequest;
 use App\Http\Requests\TransactionUpdateRequest;
 use App\Models\Transaction;
+use App\Jobs\FailPendingTransaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -35,6 +36,9 @@ class TransactionController extends Controller
 
         $transaction = Transaction::create($data);
         $transaction->payment_url = $payment_url;
+
+        // Schedule a job to mark this transaction as failed if it remains pending.
+        FailPendingTransaction::dispatch($transaction->uuid)->delay(now()->addMinutes(10));
 
         Payment::dispatchIf($transaction->status === TransactionStatus::SUCCESS->value, $transaction->order, $transaction);
         FailedPayment::dispatchIf($transaction->status === TransactionStatus::FAILED->value, $transaction->order, $transaction);

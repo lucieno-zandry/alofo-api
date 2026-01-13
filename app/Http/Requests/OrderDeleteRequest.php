@@ -22,7 +22,7 @@ class OrderDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'order_uuids' => ['required', 'regex:/^[\d]+([,\d])*$/']
+            'order_uuids' => ['required']
         ];
     }
 }

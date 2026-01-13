@@ -59,7 +59,7 @@ class OrderController extends Controller
 
     public function destroy(OrderDeleteRequest $request)
     {
-        $order_uuids = implode(',', $request->order_uuids);
+        $order_uuids = explode(',', $request->order_uuids);
         $deleted = Order::whereIn('uuid', $order_uuids)->delete();
 
         return [
