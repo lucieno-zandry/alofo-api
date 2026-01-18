@@ -5,9 +5,11 @@ namespace App\Http\Controllers;
 use App\Helpers\Functions;
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductDeleteRequest;
+use App\Http\Requests\ProductIndexRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
 use App\Models\Product;
+use App\Queries\ProductQuery;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
 
@@ -76,14 +78,20 @@ class ProductController extends Controller
         ];
     }
 
-    public function index()
+    public function index(ProductIndexRequest $request)
     {
-        $products = Product::applyFilters()->get();
+        $products = ProductQuery::make($request)
+            ->with($request->relations())
+            ->orderBySafe($request->orderBy(), $request->direction())
+            ->limit($request->limit)
+            ->offset($request->offset)
+            ->get();
 
-        return [
+        return response()->json([
             'products' => $products
-        ];
+        ]);
     }
+
 
     public function show(string $slug)
     {

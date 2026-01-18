@@ -7,13 +7,14 @@ use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
-    use HasFactory, WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithRelationships, WithPagination, DynamicConditionApplicable, ApplyFilters;
 
     protected $fillable = [
         'title',
@@ -45,5 +46,16 @@ class Product extends Model
     public function cart_items()
     {
         return $this->hasMany(CartItem::class);
+    }
+
+    public function scopeOrderBySafe(Builder $query, string $column, string $direction = 'ASC')
+    {
+        $allowed = ['created_at', 'title'];
+
+        if (in_array($column, $allowed)) {
+            $query->orderBy($column, $direction === 'DESC' ? 'DESC' : 'ASC');
+        }
+
+        return $query;
     }
 }
