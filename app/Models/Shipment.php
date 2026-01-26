@@ -12,10 +12,14 @@ use Illuminate\Database\Eloquent\Model;
 class Shipment extends Model
 {
     use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters;
-    
+
+    protected $casts = [
+        'data' => 'array',
+    ];
+
     protected $fillable = [
         'status',
-        'description',
+        'data',
         'order_uuid'
     ];
 

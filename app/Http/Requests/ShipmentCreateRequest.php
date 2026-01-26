@@ -25,7 +25,7 @@ class ShipmentCreateRequest extends FormRequest
     {
         return [
             'status' => ['required', Rule::enum(ShipmentStatus::class)],
-            'description' => ['nullable'],
+            'data' => ['nullable', 'array'],
             'order_uuid' => ['required', 'exists:orders,uuid']
         ];
     }

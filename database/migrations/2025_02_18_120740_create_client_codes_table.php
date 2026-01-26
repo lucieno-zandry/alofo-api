@@ -15,7 +15,9 @@ return new class extends Migration {
             $table->id();
             $table->timestamps();
             $table->string('code')->unique();
-            $table->foreignIdFor(User::class)->nullable()->constrained()->nullOnDelete();
+            $table->boolean('is_active')->default(true);
+            $table->integer('max_uses');
+            $table->integer('uses')->default(0);
         });
     }
 

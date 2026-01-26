@@ -25,7 +25,7 @@ class ShipmentUpdateRequest extends FormRequest
     {
         return [
             'status' => [Rule::enum(ShipmentStatus::class)],
-            'description' => ['nullable'],
+            'data' => ['nullable', 'array'],
             'order_uuid' => ['exists:orders,uuid']
         ];
     }

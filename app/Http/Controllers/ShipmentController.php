@@ -6,6 +6,7 @@ use App\Http\Requests\ShipmentCreateRequest;
 use App\Http\Requests\ShipmentDeleteRequest;
 use App\Http\Requests\ShipmentUpdateRequest;
 use App\Models\Shipment;
+use App\Notifications\ShipmentStatusUpdated;
 use Illuminate\Http\Request;
 
 class ShipmentController extends Controller
@@ -15,6 +16,11 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment = Shipment::create($data);
+
+        auth()->user()->notify(new ShipmentStatusUpdated(
+            shipment: $shipment,
+            order: $shipment->order
+        ));
 
         return [
             'shipment' => $shipment
@@ -26,6 +32,11 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment->update($data);
+
+        auth()->user()->notify(new ShipmentStatusUpdated(
+            shipment: $shipment,
+            order: $shipment->order
+        ));
 
         return [
             'shipment' => $shipment
