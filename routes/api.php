@@ -89,6 +89,19 @@ Route::prefix('coupon')
         Route::get('all', 'index');
     });
 
+Route::prefix('client-code')
+    ->controller(ClientCodeController::class)
+    ->group(function () {
+        Route::get('get/{code}', 'show');
+
+        Route::middleware([CustomSanctumAuth::class, EnsureUserIsApproved::class])->group(function () {
+            Route::get('all', 'index');
+            Route::post('create', 'store');
+            Route::put('update/{client_code}', 'update');
+            Route::delete('delete', 'destroy');
+        });
+    });
+
 Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
     ->group(function () {
         Route::prefix('address')
@@ -118,15 +131,6 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                     Route::post('update/{user}', 'update');
                     Route::get('get/{user_id}', 'show');
                     Route::get('all', 'index');
-                });
-
-            Route::prefix('client-code')
-                ->controller(ClientCodeController::class)
-                ->group(function () {
-                    Route::get('all', 'index');
-                    Route::post('create', 'store');
-                    Route::put('update/{client_code}', 'update');
-                    Route::delete('delete', 'destroy');
                 });
 
             Route::prefix('category')

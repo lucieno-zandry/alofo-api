@@ -22,8 +22,9 @@ class ClientCodeCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'alpha_num:ascii', 'min:6', 'max:6', 'unique:client_codes'],
-            'user_id' => ['nullable', 'exists:users,id']
+            'code' => ['required', 'alpha_num:ascii', 'min:6', 'unique:client_codes'],
+            'is_active' => ['required', 'boolean'],
+            'max_uses' => ['required', 'integer', 'min:1'],
         ];
     }
 }

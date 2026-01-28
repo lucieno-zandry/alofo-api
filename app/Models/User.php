@@ -63,6 +63,25 @@ class User extends Authenticatable
         return !!$this->approved_at;
     }
 
+    public function canUseSpecialPrices()
+    {
+        return $this->client_code?->isUsable() ?? false;
+    }
+
+    public function getPermissions(): ?array
+    {
+        $permissions = [];
+
+        if ($this->canUseSpecialPrices()) {
+            $permissions['can_use_special_prices'] = true;
+        }
+
+        if (count($permissions) === 0)
+            return null;
+
+        return $permissions;
+    }
+
     public function roleIsAdmin()
     {
         return $this->role === 'admin';
@@ -80,7 +99,7 @@ class User extends Authenticatable
 
     public function client_code()
     {
-        return $this->hasOne(ClientCode::class);
+        return $this->belongsTo(ClientCode::class);
     }
 
     public function scopeRoleFilterable(Builder $query)

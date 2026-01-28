@@ -22,8 +22,9 @@ class ClientCodeUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['alpha_num:ascii', 'min:6', 'max:6', 'unique:client_codes'],
-            'user_id' => ['nullable', 'exists:users,id', 'unique:client_codes']
+            'code' => ['alpha_num:ascii', 'min:6', 'unique:client_codes'],
+            'is_active' => ['boolean'],
+            'max_uses' => ['integer', 'min:1'],
         ];
     }
 }

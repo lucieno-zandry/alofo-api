@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Rules\CanBeUsedClientCode;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -28,7 +29,7 @@ class UserUpdateRequest extends FormRequest
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
             'image' => ['nullable', 'image'],
-            'client_code_id' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6'],
+            'client_code_id' => ['nullable', 'numeric', new CanBeUsedClientCode],
             'approved_at' => ['nullable', 'date']
         ];
 

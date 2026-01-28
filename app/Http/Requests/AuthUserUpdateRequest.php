@@ -2,10 +2,15 @@
 
 namespace App\Http\Requests;
 
+use App\Models\ClientCode;
+use App\Rules\CanBeUsedClientCode;
 use Illuminate\Foundation\Http\FormRequest;
 
 class AuthUserUpdateRequest extends FormRequest
 {
+    protected ?ClientCode $clientCode = null;
+    protected ?CanBeUsedClientCode $clientCodeRule = null;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -21,13 +26,15 @@ class AuthUserUpdateRequest extends FormRequest
      */
     public function rules(): array
     {
+        $this->clientCodeRule = new CanBeUsedClientCode;
+
         $rules = [
             'email' => ['email', 'unique:users'],
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
             'image' => ['nullable', 'image'],
-            'client_code_id' => ['nullable', 'alpha_num:ascii', 'min:6', 'max:6']
+            'client_code_id' => ['nullable', 'numeric', $this->clientCodeRule],
         ];
 
         if ($this->has('email') || $this->has('password')) {
@@ -35,5 +42,15 @@ class AuthUserUpdateRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    protected function passedValidation(): void
+    {
+        $this->clientCode = $this->clientCodeRule?->clientCode;
+    }
+
+    public function clientCode(): ?ClientCode
+    {
+        return $this->clientCode;
     }
 }

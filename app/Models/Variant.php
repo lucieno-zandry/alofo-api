@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Variant extends Model
-{/** @use HasFactory<\Database\Factories\VariantFactory> */
+{
+    /** @use HasFactory<\Database\Factories\VariantFactory> */
     use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters;
 
     protected $fillable = [
@@ -28,7 +29,7 @@ class Variant extends Model
     {
         $price = $this->price;
 
-        if (auth()->user()->client_code()->first()) {
+        if (auth()->user()->canUseSpecialPrices()) {
             $price = $this->special_price;
         }
 

@@ -49,13 +49,11 @@ class AuthController extends Controller
         }
 
         $user = User::create($data);
-
-        if ($client_code)
-            $client_code->update(['user_id' => $user->id]);
+        $user->permissions = $user->getPermissions();
 
         return [
             'token' => $user->createToken('device')->plainTextToken,
-            'auth' => $user
+            'auth' => $user,
         ];
     }
 
@@ -68,6 +66,8 @@ class AuthController extends Controller
                 'email' => 'Wrong email or password'
             ]);
         }
+
+        $user->permissions = $user->getPermissions();
 
         return [
             'token' => $user->createToken('device')->plainTextToken,
@@ -142,6 +142,8 @@ class AuthController extends Controller
         $user->password = $request->password;
         $user->save();
 
+        $user->permissions = $user->getPermissions();
+
         //Delete used token
         $token_table->where('email', $user->email)->delete();
 
@@ -154,32 +156,9 @@ class AuthController extends Controller
     public function update(AuthUserUpdateRequest $request)
     {
         $data = $request->validated();
+        $client_code = $request->clientCode();
 
         $user = User::find(auth()->id());
-
-        // If the user uses a client code
-        if (key_exists('client_code_id', $data)) {
-            if (!empty($data['client_code_id'])) {
-                $client_code = ClientCode::where('code', $data['client_code_id'])->first();
-
-                if (!$client_code || $client_code->user_id !== null)
-                    throw ValidationException::withMessages([
-                        'client_code_id' => [
-                            'The client code is not valid.'
-                        ]
-                    ]);
-
-                // We store the actual client_code_id, and not the code;
-                $data['client_code_id'] = $client_code->id;
-
-                $client_code->update(['user_id' => $user->id]);
-            } else if ($user->client_code_id) {
-                $client_code = ClientCode::find($user->client_code_id);
-
-                if ($client_code)
-                    $client_code->update(['user_id' => null]);
-            }
-        }
 
         // Delete previous image if changed
         if (key_exists("image", $data) && $user->image)
@@ -198,7 +177,12 @@ class AuthController extends Controller
         if ($request->has('email'))
             $user->email_verified_at = null;
 
+        // Increment client code uses if applicable
+        if ($client_code && $user->client_code_id !== $client_code->id)
+            $client_code->incrementUses();
+
         $user->update($data);
+        $user->permissions = $user->getPermissions();
 
         return [
             'user' => $user,
@@ -209,6 +193,8 @@ class AuthController extends Controller
     {
         $user = User::withRelations()
             ->find(auth()->id());
+
+        $user->permissions = $user->getPermissions();
 
         return [
             'user' => $user,
@@ -235,7 +221,9 @@ class AuthController extends Controller
         $code = $helpers->__get('code');
         $code->delete();
 
-        auth()->user()->markEmailAsVerified();
+        $user = auth()->user();
+        $user->markEmailAsVerified();
+        $user->permissions = $user->getPermissions();
 
         return [
             'user' => auth()->user()
