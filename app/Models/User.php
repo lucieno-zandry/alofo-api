@@ -31,7 +31,7 @@ class User extends Authenticatable
         'password',
         'role',
         'client_code_id',
-        'image',
+        'avatar_image_id',
         'approved_at'
     ];
 
@@ -124,5 +124,10 @@ class User extends Authenticatable
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function avatar_image()
+    {
+        return $this->belongsTo(Image::class, 'avatar_image_id');
     }
 }

@@ -28,7 +28,7 @@ class ProductUpdateRequest extends FormRequest
             'category_id' => ['nullable', 'exists:categories,id'],
             'images' => ['nullable', 'array', 'max:4'],
             'images[*]' => ['image'],
-            'old_images_filenames' => ['array']
+            'old_images_ids' => ['array']
         ];
     }
 }

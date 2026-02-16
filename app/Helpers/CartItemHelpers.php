@@ -33,7 +33,7 @@ class CartItemHelpers
                 'sku'           => $variant->sku,
                 'price'         => $variant->price,
                 'special_price' => $variant->special_price,
-                'image'         => $variant->image,
+                'image'         => $variant->image?->url ?? null,
             ];
 
             $variant->load(['product', 'variant_options.variant_group']);
@@ -43,7 +43,7 @@ class CartItemHelpers
                 'title' => $variant->product->title,
                 'slug' => $variant->product->slug,
                 'category_id' => $variant->product->category_id,
-                'main_image' => $variant->product->main_image,
+                'main_image' => $variant->product->images->first()?->url ?? null,
             ];
 
             $variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);

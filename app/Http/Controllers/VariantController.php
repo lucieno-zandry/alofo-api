@@ -7,9 +7,8 @@ use App\Http\Requests\VariantCreateRequest;
 use App\Http\Requests\VariantDeleteRequest;
 use App\Http\Requests\VariantUpdateRequest;
 use App\Models\Variant;
-use DB;
-use Illuminate\Validation\ValidationException;
-use Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class VariantController extends Controller
 {
@@ -17,13 +16,9 @@ class VariantController extends Controller
     {
         $data = $request->validated();
 
-        if (!empty($data['image'])) {
-            $path = Functions::store_uploaded_file($data['image'], ['folder' => 'products']);
-
-            if (!$path)
-                throw ValidationException::withMessages(['image' => 'Failed to store image']);
-
-            $data['image'] = $path;
+        if ($request->hasFile('image')) {
+            $image = Functions::store_uploaded_file($request->file('image'), 'products');
+            $data['image_id'] = $image->id;
         }
 
         $variant = Variant::create($data);
@@ -47,18 +42,13 @@ class VariantController extends Controller
     {
         $data = $request->validated();
 
-        // Remove existing image if changed
-        if (key_exists("image", $data) && $variant->image)
-            Storage::delete(paths: $variant->image);
+        if ($request->hasFile('image')) {
+            // Remove existing image if changed
+            if ($variant->image)
+                Storage::delete(paths: $variant->image->path);
 
-        // Store the uploaded image
-        if (!empty($data['image'])) {
-            $path = Functions::store_uploaded_file($data['image']);
-
-            if (!$path)
-                throw ValidationException::withMessages(['image' => 'Failed to store image']);
-
-            $data['image'] = $path;
+            $image = Functions::store_uploaded_file($request->file('image'), 'products');
+            $data['image_id'] = $image->id;
         }
 
         if ($request->has('variant_option_ids')) {

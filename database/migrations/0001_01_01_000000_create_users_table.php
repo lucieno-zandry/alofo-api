@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->timestamp('approved_at')->nullable();
             $table->string('password')->nullable();
             $table->string('role')->default('client');
-            $table->string('image')->nullable();
+            $table->foreignId('avatar_image_id')->nullable();
             $table->foreignIdFor(Address::class)->nullable()->constrained()->nullOnDelete();
             $table->foreignIdFor(ClientCode::class)->nullable()->constrained()->nullOnDelete();
             $table->rememberToken();

@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Models\Shipment;
 use App\Models\Order;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class ShipmentStatusUpdated extends Notification
+class ShipmentStatusUpdated extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -39,15 +40,15 @@ class ShipmentStatusUpdated extends Notification
         // Add status-specific details
         if ($this->shipment->status === 'SHIPPED') {
             $data = $this->shipment->data;
-            
+
             if (!empty($data['carrier'])) {
                 $mailMessage->line('Carrier: ' . $data['carrier']);
             }
-            
+
             if (!empty($data['tracking_number'])) {
                 $mailMessage->line('Tracking Number: ' . $data['tracking_number']);
             }
-            
+
             if (!empty($data['estimated_delivery'])) {
                 $mailMessage->line('Estimated Delivery: ' . date('F j, Y', strtotime($data['estimated_delivery'])));
             }
@@ -83,7 +84,7 @@ class ShipmentStatusUpdated extends Notification
      */
     private function getSubject(): string
     {
-        return match($this->shipment->status) {
+        return match ($this->shipment->status) {
             'PROCESSING' => 'Order Processing - Order #' . $this->order->uuid,
             'SHIPPED' => 'Order Shipped - Order #' . $this->order->uuid,
             'DELIVERED' => 'Order Delivered - Order #' . $this->order->uuid,
@@ -96,7 +97,7 @@ class ShipmentStatusUpdated extends Notification
      */
     private function getStatusMessage(): string
     {
-        return match($this->shipment->status) {
+        return match ($this->shipment->status) {
             'PROCESSING' => 'Your order is being prepared for shipment.',
             'SHIPPED' => 'Great news! Your order has been shipped and is on its way to you.',
             'DELIVERED' => 'Your order has been successfully delivered. We hope you enjoy your purchase!',

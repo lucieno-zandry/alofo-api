@@ -14,12 +14,12 @@ class DatabaseSeeder extends Seeder
     {
         User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'John Doe',
-            'email' => 'john@doe.com',
-            'role' => 'admin',
-            'approved_at' => now()
-        ]);
+        // User::factory()->create([
+        //     'name' => 'John Doe',
+        //     'email' => 'john@doe.com',
+        //     'role' => 'admin',
+        //     'approved_at' => now()
+        // ]);
 
         $this->call(ProductSeeder::class);
         $this->call(CouponSeeder::class);

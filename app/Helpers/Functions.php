@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Address;
 use App\Models\Coupon;
+use App\Models\Image;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Storage;
@@ -21,13 +22,23 @@ class Functions
         return $data;
     }
 
-    public static function store_uploaded_file(UploadedFile $file, array $options = [])
+    public static function store_uploaded_file(UploadedFile $file, string $path): Image
     {
-        if (empty($options['folder']))
-            $options['folder'] = 'users';
+        $path = $file->store(
+            $path,
+            'public'
+        );
 
-        $path = $file->store($options['folder'], $options);
-        return $path;
+        $image = Image::create([
+            'path'      => $path,
+            'disk'      => 'public',
+            'mime_type' => $file->getMimeType(),
+            'size'      => $file->getSize(),
+            'width'     => getimagesize($file)[0] ?? null,
+            'height'    => getimagesize($file)[1] ?? null,
+        ]);
+
+        return $image;
     }
 
     public static function get_iso_string(\DateTime $datetime): string

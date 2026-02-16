@@ -5,10 +5,11 @@ namespace App\Notifications;
 use App\Models\Transaction;
 use App\Models\Order;
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class PaymentFailed extends Notification
+class PaymentFailed extends Notification implements ShouldQueue
 {
     use Queueable;
 

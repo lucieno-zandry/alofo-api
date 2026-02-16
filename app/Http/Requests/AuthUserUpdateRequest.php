@@ -33,7 +33,12 @@ class AuthUserUpdateRequest extends FormRequest
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
             'role' => ['string'],
-            'image' => ['nullable', 'image'],
+            'avatar_image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048',
+            ],
             'client_code_id' => ['nullable', 'numeric', $this->clientCodeRule],
         ];
 

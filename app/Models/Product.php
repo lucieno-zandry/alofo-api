@@ -22,6 +22,15 @@ class Product extends Model
         'category_id'
     ];
 
+    protected static function booted()
+    {
+        static::deleting(function (Product $product) {
+            foreach ($product->images as $image) {
+                $product->images()->detach($image->id);
+                $image->deleteIfUnused();
+            }
+        });
+    }
 
     public function category()
     {

@@ -19,7 +19,7 @@ return new class extends Migration {
             $table->float('price');
             $table->float('special_price')->nullable();
             $table->integer('stock');
-            $table->string('image')->nullable();
+            $table->foreignId('image_id')->nullable();
             $table->unique(['sku', 'product_id']);
         });
     }

@@ -7,6 +7,7 @@ use App\Http\Requests\UserUpdateRequest;
 use App\Models\ClientCode;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -15,18 +16,19 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        // Remove existing image if changed
-        if (key_exists("image", $data) && $user->image)
-            Storage::delete($user->image);
+        // Delete previous image if changed
+        if (key_exists("avatar_image", $data) && $user->avatar_image) {
+            Storage::delete($user->avatar_image->path);
+        }
 
-        // Store the uploaded image
-        if (!empty($data['image'])) {
-            $path = Functions::store_uploaded_file($data['image']);
+        if ($request->hasFile('avatar_image')) {
+            $file = $request->file('avatar_image');
+            $image = Functions::store_uploaded_file(
+                $file,
+                'avatars/' . Str::uuid()
+            );
 
-            if (!$path)
-                throw ValidationException::withMessages(['image' => 'Failed to store image']);
-
-            $data['image'] = $path;
+            $data['avatar_image_id'] = $image->id;
         }
 
         $user->update($data);

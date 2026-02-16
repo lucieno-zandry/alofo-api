@@ -22,14 +22,14 @@ class Variant extends Model
         'price',
         'special_price',
         'stock',
-        'image'
+        'image_id'
     ];
 
     public function get_price(): float
     {
         $price = $this->price;
 
-        if (auth()->user()->canUseSpecialPrices()) {
+        if (auth()->user()->canUseSpecialPrices() && $this->special_price !== null && $this->special_price < $this->price) {
             $price = $this->special_price;
         }
 
@@ -69,5 +69,10 @@ class Variant extends Model
         }
 
         return $query;
+    }
+
+    public function image()
+    {
+        return $this->belongsTo(Image::class);
     }
 }

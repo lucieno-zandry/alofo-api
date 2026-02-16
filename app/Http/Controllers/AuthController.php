@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientCodeUsed;
 use App\Helpers\EmailConfirmationHelpers;
 use App\Helpers\Functions;
 use App\Http\Requests\AuthUserUpdateRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Mail\Auth\Password\ResetMail;
-use App\Models\ClientCode;
 use App\Models\User;
 use DateInterval;
 use Illuminate\Http\Request;
@@ -25,31 +25,28 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $data = $request->validated();
+        $client_code = $request->clientCode();
 
-        $client_code = !empty($data['client_code_id']) ? ClientCode::where('code', $data['client_code_id'])->first() : null;
+        // Increment client code uses if applicable
+        if ($client_code)
+            ClientCodeUsed::dispatch($client_code);
 
-        if (!empty($data['client_code_id'])) {
-            if (!$client_code || $client_code->user_id !== null)
-                throw ValidationException::withMessages([
-                    'client_code_id' => [
-                        'The client code is not valid.'
-                    ]
-                ]);
+        if ($request->hasFile('avatar_image')) {
+            $file = $request->file('avatar_image');
 
-            $data['client_code_id'] = $client_code->id;
-        }
+            $image = Functions::store_uploaded_file(
+                $file,
+                'avatars/'
+            );
 
-        if (!empty($data['image'])) {
-            $path = Functions::store_uploaded_file($data['image']);
-
-            if (!$path)
-                throw ValidationException::withMessages(['image' => 'Failed to store image']);
-
-            $data['image'] = $path;
+            $data['avatar_image_id'] = $image->id;
         }
 
         $user = User::create($data);
+
         $user->permissions = $user->getPermissions();
+
+        $user->load('avatar_image'); // Load avatar image relation
 
         return [
             'token' => $user->createToken('device')->plainTextToken,
@@ -59,7 +56,7 @@ class AuthController extends Controller
 
     public function login(LoginRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $user = User::with('avatar_image')->where('email', $request->email)->first();
 
         if (!Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -134,7 +131,7 @@ class AuthController extends Controller
 
         if ($expired_at < $now) throw HttpException::fromStatusCode(403, 'Forbidden');
 
-        $user = User::where('email', $token->email)->first();
+        $user = User::with('avatar_image')->where('email', $token->email)->first();
 
         if (!$user)
             throw HttpException::fromStatusCode(403, 'Forbidden');
@@ -160,17 +157,18 @@ class AuthController extends Controller
 
         $user = User::find(auth()->id());
 
-        // Delete previous image if changed
-        if (key_exists("image", $data) && $user->image)
-            Storage::delete($user->image);
+        if ($request->hasFile('avatar_image') && $user->avatar_image)
+            $user->avatar_image->delete();
 
-        if (!empty($data['image'])) {
-            $path = Functions::store_uploaded_file($data['image']);
+        if ($request->hasFile('avatar_image')) {
+            $file = $request->file('avatar_image');
 
-            if (!$path)
-                throw ValidationException::withMessages(['image' => 'Failed to store image']);
+            $image = Functions::store_uploaded_file(
+                $file,
+                'avatars/'
+            );
 
-            $data['image'] = $path;
+            $data['avatar_image_id'] = $image->id;
         }
 
         // Make the user verify it's email again if changed
@@ -179,10 +177,12 @@ class AuthController extends Controller
 
         // Increment client code uses if applicable
         if ($client_code && $user->client_code_id !== $client_code->id)
-            $client_code->incrementUses();
+            ClientCodeUsed::dispatch($client_code);
 
         $user->update($data);
         $user->permissions = $user->getPermissions();
+
+        $user->load('avatar_image'); // Load avatar image relation
 
         return [
             'user' => $user,
@@ -191,7 +191,8 @@ class AuthController extends Controller
 
     public function show()
     {
-        $user = User::withRelations()
+        $user = User::with('avatar_image')
+            ->withRelations()
             ->find(auth()->id());
 
         $user->permissions = $user->getPermissions();
@@ -219,11 +220,12 @@ class AuthController extends Controller
          * Get the ConfirmationCode instance and then delete it
          */
         $code = $helpers->__get('code');
-        $code->delete();
+        $code?->delete();
 
         $user = auth()->user();
         $user->markEmailAsVerified();
         $user->permissions = $user->getPermissions();
+        $user->avatar_image; // Load avatar image relation
 
         return [
             'user' => auth()->user()

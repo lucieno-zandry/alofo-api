@@ -11,6 +11,7 @@ use App\Models\Image;
 use App\Models\Product;
 use App\Queries\ProductQuery;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -24,8 +25,7 @@ class ProductController extends Controller
             $images = new Collection();
 
             foreach ($request->images as $file) {
-                $filename = Functions::store_uploaded_file($file, ['folder' => 'products']);
-                $image = Image::create(['filename' => $filename]);
+                $image = Functions::store_uploaded_file($file, 'products');
                 $images->add($image);
             }
 
@@ -42,36 +42,47 @@ class ProductController extends Controller
         $data = $request->validated();
         $product->update($data);
 
-        if ($request->has('old_images_filenames')) {
-            $product
-                ->images()
-                ->whereIn('filename', $request->old_images_filenames)
-                ->delete();
+        // 1. Remove old images
+        if ($request->filled('old_images_ids')) {
+            $images = Image::whereIn('id', $request->old_images_ids)->get();
 
-            Storage::delete($request->old_images_filenames);
+            foreach ($images as $image) {
+                $product->images()->detach($image->id);
+                $image->deleteIfUnused();
+            }
         }
 
-        if ($request->has('images')) {
-            $images = new Collection();
+        // 2. Add new images
+        if ($request->hasFile('images')) {
+            $imageIds = [];
 
-            foreach ($request->images as $file) {
-                $filename = Functions::store_uploaded_file($file, ['folder' => 'products']);
-                $image = Image::create(['filename' => $filename]);
-                $images->add($image);
+            foreach ($request->file('images') as $file) {
+                $image = Functions::store_uploaded_file($file, 'products');
+                $imageIds[] = $image->id;
             }
 
-            $product->images()->sync($images);
+            $product->images()->attach($imageIds);
         }
 
         return [
-            'product' => $product
+            'product' => $product->load('images'),
         ];
     }
 
     public function destroy(ProductDeleteRequest $request)
     {
         $product_ids = explode(',', $request->product_ids);
-        $deleted = Product::whereIn('id', $product_ids)->delete();
+        $user = Auth::user();
+
+        $products = Product::whereIn('id', $product_ids)->get();
+        $deleted = 0;
+
+        $products->each(function (Product $product) use ($user, &$deleted) {
+            if ($user->can('delete', $product)) {
+                $product->delete(); // triggers model events
+                $deleted++;
+            }
+        });
 
         return [
             'deleted' => $deleted
