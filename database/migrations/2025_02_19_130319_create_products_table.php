@@ -18,11 +18,11 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->foreignIdFor(Category::class);
+            $table->foreignIdFor(Category::class)->nullable()->constrained()->nullOnDelete();
             $table->fullText(['title', 'description']);
         });
     }
- 
+
     /**
      * Reverse the migrations.
      */

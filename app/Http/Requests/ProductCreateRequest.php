@@ -24,7 +24,7 @@ class ProductCreateRequest extends FormRequest
         return [
             'title' => ['required', 'min:2'],
             'description' => ['nullable'],
-            'category_id' => ['required', 'exists:categories,id'],
+            'category_id' => ['exists:categories,id'],
             'images' => ['nullable', 'array', 'max:4'],
             'images[*]' => ['image'],
             'slug' => ['required', 'unique:products,slug']
