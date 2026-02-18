@@ -64,6 +64,12 @@ class AuthController extends Controller
             ]);
         }
 
+        if ($user->role !== $request->role) {
+            throw ValidationException::withMessages([
+                'email' => 'This account is not a ' . $request->role
+            ]);
+        }
+
         $user->permissions = $user->getPermissions();
 
         return [

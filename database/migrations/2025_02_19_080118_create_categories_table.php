@@ -15,9 +15,13 @@ return new class extends Migration {
             $table->id();
             $table->timestamps();
             $table->string('title');
-            $table->foreignIdFor(Category::class, 'parent_id')->nullable()->constrained()->cascadeOnDelete();
+            $table->foreignId('parent_id')->nullable();
             $table->unique(['title', 'parent_id']);
             $table->fullText(['title']);
+        });
+
+        Schema::table('categories', function (Blueprint $table) {
+            $table->foreign('parent_id')->references('id')->on('categories')->nullOnDelete();
         });
     }
 

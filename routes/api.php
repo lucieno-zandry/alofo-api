@@ -137,7 +137,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                 ->controller(CategoryController::class)
                 ->group(function () {
                     Route::post('create', 'store');
-                    Route::put('update/{category}', 'update');
+                    Route::post('update/{category}', 'update');
                     Route::delete('delete', 'destroy');
                 });
 
