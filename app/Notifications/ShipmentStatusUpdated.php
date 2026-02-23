@@ -15,7 +15,8 @@ class ShipmentStatusUpdated extends Notification implements ShouldQueue
 
     public function __construct(
         public Shipment $shipment,
-        public Order $order
+        public Order $order,
+        public string $order_detail_url,
     ) {}
 
     /**
@@ -59,7 +60,7 @@ class ShipmentStatusUpdated extends Notification implements ShouldQueue
         }
 
         return $mailMessage
-            ->action('View Order Details', url(env("ORDER_DETAILS_URL") . $this->order->uuid))
+            ->action('View Order Details', url($this->order_detail_url . $this->order->uuid))
             ->line('Thank you for your order!');
     }
 

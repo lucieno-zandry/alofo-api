@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UserRole;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
@@ -84,12 +85,12 @@ class User extends Authenticatable
 
     public function roleIsAdmin()
     {
-        return $this->role === 'admin';
+        return  $this->role === UserRole::ADMIN->value;
     }
 
     public function roleIsCustomer()
     {
-        return $this->role === 'customer';
+        return $this->role === UserRole::CLIENT->value;
     }
 
     public function addresses()

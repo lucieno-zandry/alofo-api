@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Helpers\Functions;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,12 +19,15 @@ class EnsureUserIsApproved
         if (!$request->user())
             abort(403);
 
-        if ($request->user()->roleIsAdmin() && !$request->user()->hasBeenApproved())
+        if ($request->user()->roleIsAdmin() && !$request->user()->hasBeenApproved()) {
+            $user_approbation_url = Functions::get_frontend_url('USER_APPROBATION_PATHNAME');
+
             return response()->json([
                 'message' => 'Account still not approved',
-                'redirect_url' => env('USER_APPROBATION_URL'),
+                'redirect_url' => $user_approbation_url,
                 'action' => 'APPROVE_ACCOUNT'
             ], 403);
+        }
 
         return $next($request);
     }

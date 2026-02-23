@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\Functions;
 use App\Http\Requests\ShipmentCreateRequest;
 use App\Http\Requests\ShipmentDeleteRequest;
 use App\Http\Requests\ShipmentUpdateRequest;
@@ -16,10 +17,12 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment = Shipment::create($data);
+        $order_detail_url = Functions::get_frontend_url("ORDER_DETAILS_PATHNAME");
 
         auth()->user()->notify(new ShipmentStatusUpdated(
             shipment: $shipment,
-            order: $shipment->order
+            order: $shipment->order,
+            order_detail_url: $order_detail_url
         ));
 
         return [
@@ -32,10 +35,12 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment->update($data);
+        $order_detail_url = Functions::get_frontend_url("ORDER_DETAILS_PATHNAME");
 
         auth()->user()->notify(new ShipmentStatusUpdated(
             shipment: $shipment,
-            order: $shipment->order
+            order: $shipment->order,
+            order_detail_url: $order_detail_url
         ));
 
         return [

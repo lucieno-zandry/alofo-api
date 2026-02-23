@@ -15,7 +15,8 @@ class PaymentFailed extends Notification implements ShouldQueue
 
     public function __construct(
         public Transaction $transaction,
-        public Order $order
+        public Order $order,
+        public $order_details_url,
     ) {}
 
     /**
@@ -39,7 +40,7 @@ class PaymentFailed extends Notification implements ShouldQueue
             ->line('Payment Method: ' . $this->transaction->method)
             ->line('Amount: ' . number_format($this->order->total, 2))
             ->line('Please try again or use a different payment method.')
-            ->action('Retry Payment', env("ORDER_DETAILS_URL") . $this->order->uuid)
+            ->action('Retry Payment', $this->order_details_url . $this->order->uuid)
             ->line('If you continue to experience issues, please contact our support team.');
     }
 

@@ -15,7 +15,8 @@ class PaymentSuccess extends Notification implements ShouldQueue
 
     public function __construct(
         public Transaction $transaction,
-        public Order $order
+        public Order $order,
+        public string $order_detail_url,
     ) {}
 
     /**
@@ -38,7 +39,7 @@ class PaymentSuccess extends Notification implements ShouldQueue
             ->line('Order Number: ' . $this->order->uuid)
             ->line('Payment Method: ' . $this->transaction->method)
             ->line('Total Amount: ' . number_format($this->order->total, 2))
-            ->action('View Order Details', url(env("ORDER_DETAILS_URL") . $this->order->uuid))
+            ->action('View Order Details', url($this->order_detail_url . $this->order->uuid))
             ->line('Thank you for your purchase!');
     }
 

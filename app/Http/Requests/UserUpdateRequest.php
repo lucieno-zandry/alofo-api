@@ -2,9 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\UserRole;
 use App\Rules\CanBeUsedClientCode;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserUpdateRequest extends FormRequest
 {
@@ -27,7 +29,7 @@ class UserUpdateRequest extends FormRequest
             'email' => ['email', 'unique:users'],
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
-            'role' => ['string'],
+            'role' => [Rule::enum(UserRole::class)],
             'image' => ['nullable', 'image'],
             'client_code_id' => ['nullable', 'numeric', new CanBeUsedClientCode],
             'approved_at' => ['nullable', 'date']

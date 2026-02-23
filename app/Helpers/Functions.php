@@ -121,4 +121,18 @@ class Functions
             'min_order_value' => $coupon->min_order_value,
         ];
     }
+
+    public static function get_frontend_url(?string $env_pathname)
+    {
+        $frontend_url = request('Origin') ?? env('FRONTEND_URL');
+        $lang = app()->getLocale();
+        $url = "$frontend_url/$lang";
+
+        $pathname = env($env_pathname);
+
+        if ($pathname)
+            $url = "$url/$pathname";
+
+        return $url;
+    }
 }

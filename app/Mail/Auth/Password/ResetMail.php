@@ -2,6 +2,7 @@
 
 namespace App\Mail\Auth\Password;
 
+use App\Helpers\Functions;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -12,15 +13,11 @@ class ResetMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    protected $reset_url;
-
     /**
      * Create a new message instance.
      */
-    public function __construct(string $token)
-    {
-        $this->reset_url = env('PASSWORD_RESET_URL') . $token;
-    }
+    public function __construct(protected $reset_url)
+    {}
 
     /**
      * Get the message envelope.

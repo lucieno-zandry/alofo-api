@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\Functions;
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductDeleteRequest;
+use App\Http\Requests\ProductFullCreateRequest;
 use App\Http\Requests\ProductIndexRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
@@ -12,6 +13,7 @@ use App\Models\Product;
 use App\Queries\ProductQuery;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -135,5 +137,81 @@ class ProductController extends Controller
         return [
             'products' => $products
         ];
+    }
+
+    public function product_full_create(ProductFullCreateRequest $request)
+    {
+        $product = DB::transaction(function () use ($request) {
+
+            $product = Product::create([
+                'title' => $request->title,
+                'slug' => $request->slug,
+                'description' => $request->description,
+                'category_id' => $request->category_id,
+            ]);
+
+            // images
+            if ($request->hasFile('images')) {
+                $images = new Collection();
+
+                foreach ($request->file('images') as $file) {
+                    $image = Functions::store_uploaded_file($file, 'products');
+                    $images->add($image->id); // ensure you're syncing IDs
+                }
+
+                $product->images()->sync($images);
+            }
+
+            // groups + options
+            $optionMap = [];
+
+            foreach ($request->variant_groups ?? [] as $groupData) {
+
+                $group = $product->variant_groups()->create([
+                    'name' => $groupData['name']
+                ]);
+
+                foreach ($groupData['options'] ?? [] as $opt) {
+                    $option = $group->variant_options()->create([
+                        'value' => $opt['value']
+                    ]);
+
+                    // ⚠️ better key than value alone (explained below)
+                    $optionMap[$group->name . ':' . $opt['value']] = $option->id;
+                }
+            }
+
+            // variants
+            foreach ($request->variants ?? [] as $variantData) {
+
+                $variant = $product->variants()->create([
+                    'sku' => $variantData['sku'],
+                    'price' => $variantData['price'],
+                    'special_price' => $variantData['special_price'] ?? null,
+                    'stock' => $variantData['stock'],
+                ]);
+
+                if (!empty($variantData['option_refs'])) {
+                    $ids = collect($variantData['option_refs'])
+                        ->map(fn($ref) => $optionMap[$ref])
+                        ->toArray();
+
+                    $variant->variant_options()->sync($ids);
+                }
+            }
+
+            return $product;
+        });
+
+        return response()->json(
+            [
+                'product' => $product->load([
+                    'images',
+                    'variant_groups.variant_options',
+                    'variants.variant_options',
+                ]),
+            ],
+            201
+        );
     }
 }
