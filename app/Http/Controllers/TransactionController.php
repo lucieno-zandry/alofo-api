@@ -76,7 +76,7 @@ class TransactionController extends Controller
     public function index()
     {
         $transactions = Transaction::applyFilters()
-            ->clientFilterable()
+            ->customerFilterable()
             ->get();
 
         return [

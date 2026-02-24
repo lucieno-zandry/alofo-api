@@ -22,7 +22,7 @@ class Functions
         return $data;
     }
 
-    public static function store_uploaded_file(UploadedFile $file, string $path): Image
+    public static function store_uploaded_image(UploadedFile $file, string $path): Image
     {
         $path = $file->store(
             $path,

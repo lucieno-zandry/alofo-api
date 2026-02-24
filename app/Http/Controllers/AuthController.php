@@ -34,7 +34,7 @@ class AuthController extends Controller
         if ($request->hasFile('avatar_image')) {
             $file = $request->file('avatar_image');
 
-            $image = Functions::store_uploaded_file(
+            $image = Functions::store_uploaded_image(
                 $file,
                 'avatars/'
             );
@@ -171,7 +171,7 @@ class AuthController extends Controller
         if ($request->hasFile('avatar_image')) {
             $file = $request->file('avatar_image');
 
-            $image = Functions::store_uploaded_file(
+            $image = Functions::store_uploaded_image(
                 $file,
                 'avatars/'
             );

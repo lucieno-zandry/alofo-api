@@ -23,15 +23,15 @@ class ProductController extends Controller
         $data = $request->validated();
         $product = Product::create($data);
 
-        if ($request->has('images')) {
-            $images = new Collection();
+        if ($request->hasFile('images')) {
+            $imageIds = [];
 
-            foreach ($request->images as $file) {
-                $image = Functions::store_uploaded_file($file, 'products');
-                $images->add($image);
+            foreach ($request->file('images') as $file) {
+                $image = Functions::store_uploaded_image($file, 'products');
+                $imageIds[] = $image->id;
             }
 
-            $product->images()->sync($images);
+            $product->images()->attach($imageIds);
         }
 
         return [
@@ -59,7 +59,7 @@ class ProductController extends Controller
             $imageIds = [];
 
             foreach ($request->file('images') as $file) {
-                $image = Functions::store_uploaded_file($file, 'products');
+                $image = Functions::store_uploaded_image($file, 'products');
                 $imageIds[] = $image->id;
             }
 
@@ -111,6 +111,7 @@ class ProductController extends Controller
         $product = Product::with([
             'variant_groups' => fn($query) => $query->with('variant_options'),
             'variants' => fn($query) => $query->with('variant_options'),
+            'images'
         ])->where('slug', $slug)->first();
 
         return [
@@ -152,14 +153,17 @@ class ProductController extends Controller
 
             // images
             if ($request->hasFile('images')) {
-                $images = new Collection();
+                $imageIds = [];
 
                 foreach ($request->file('images') as $file) {
-                    $image = Functions::store_uploaded_file($file, 'products');
-                    $images->add($image->id); // ensure you're syncing IDs
+                    $image = Functions::store_uploaded_image($file, 'products');
+
+                    if ($image && $image->id) {
+                        $imageIds[] = $image->id;
+                    }
                 }
 
-                $product->images()->sync($images);
+                $product->images()->sync($imageIds);
             }
 
             // groups + options

@@ -17,7 +17,7 @@ class VariantController extends Controller
         $data = $request->validated();
 
         if ($request->hasFile('image')) {
-            $image = Functions::store_uploaded_file($request->file('image'), 'products');
+            $image = Functions::store_uploaded_image($request->file('image'), 'products');
             $data['image_id'] = $image->id;
         }
 
@@ -47,7 +47,7 @@ class VariantController extends Controller
             if ($variant->image)
                 Storage::delete(paths: $variant->image->path);
 
-            $image = Functions::store_uploaded_file($request->file('image'), 'products');
+            $image = Functions::store_uploaded_image($request->file('image'), 'products');
             $data['image_id'] = $image->id;
         }
 
