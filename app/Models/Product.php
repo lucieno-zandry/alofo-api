@@ -28,7 +28,7 @@ class Product extends Model
         static::deleting(function (Product $product) {
             foreach ($product->images as $image) {
                 $product->images()->detach($image->id);
-                $image->deleteIfUnused();
+                $image->delete();
             }
         });
     }

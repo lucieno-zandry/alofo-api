@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\Functions;
+use App\Helpers\ProductFullUpdateService;
 use App\Http\Requests\ProductCreateRequest;
 use App\Http\Requests\ProductDeleteRequest;
 use App\Http\Requests\ProductFullCreateRequest;
+use App\Http\Requests\ProductFullUpdateRequest;
 use App\Http\Requests\ProductIndexRequest;
 use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
@@ -50,7 +52,7 @@ class ProductController extends Controller
 
             foreach ($images as $image) {
                 $product->images()->detach($image->id);
-                $image->deleteIfUnused();
+                $image->delete();
             }
         }
 
@@ -217,5 +219,14 @@ class ProductController extends Controller
             ],
             201
         );
+    }
+
+    public function product_full_update(
+        ProductFullUpdateRequest $request,
+        Product $product,
+        ProductFullUpdateService $service
+    ) {
+        $updated = $service->update($product, $request);
+        return response()->json(['product' => $updated]);
     }
 }

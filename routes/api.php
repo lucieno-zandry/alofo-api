@@ -147,6 +147,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                     Route::post('full-create', 'product_full_create');
                     Route::post('create', 'store');
                     Route::post('update/{product}', 'update');
+                    Route::post('full-update/{product}', 'product_full_update');
                     Route::delete('delete', 'destroy');
                 });
 
