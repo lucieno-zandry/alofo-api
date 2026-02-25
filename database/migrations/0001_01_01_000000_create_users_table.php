@@ -22,8 +22,6 @@ return new class extends Migration {
             $table->string('password')->nullable();
             $table->enum('role', UserRole::toArray())->default(UserRole::CLIENT->value);
             $table->foreignId('avatar_image_id')->nullable();
-            $table->foreignIdFor(Address::class)->nullable()->constrained()->nullOnDelete();
-            $table->foreignIdFor(ClientCode::class)->nullable()->constrained()->nullOnDelete();
             $table->rememberToken();
             $table->timestamps();
         });
