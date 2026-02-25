@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->timestamps();
             $table->enum('status', ShipmentStatus::toArray());
             $table->json('data')->nullable();
-            $table->foreignUuid('order_uuid')->constrained()->cascadeOnDelete();
+            $table->foreignUuid('order_uuid')->constrained('orders')->cascadeOnDelete();
         });
     }
 
