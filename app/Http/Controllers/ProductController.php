@@ -98,15 +98,10 @@ class ProductController extends Controller
         $products = ProductQuery::make($request)
             ->with($request->relations())
             ->orderBySafe($request->orderBy(), $request->direction())
-            ->limit($request->limit)
-            ->offset($request->offset)
-            ->get();
+            ->paginate($request->limit ?? 20);
 
-        return response()->json([
-            'products' => $products
-        ]);
+        return response()->json($products);
     }
-
 
     public function show(string $slug)
     {

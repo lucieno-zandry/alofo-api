@@ -18,7 +18,7 @@ class ProductQuery
             ->leftJoin('variants', 'variants.product_id', '=', 'products.id')
             ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variants.id')
             ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
-            ->distinct();
+            ->groupBy('products.id');
 
         // 🔍 Search
         if ($request->filled('search')) {
