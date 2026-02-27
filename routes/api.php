@@ -58,7 +58,6 @@ Route::prefix('product')
     ->group(function () {
         Route::get('all', 'index');
         Route::get('get/{slug}', 'show');
-        Route::get('search/{keywords}', 'search');
     });
 
 Route::prefix('variant')

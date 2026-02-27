@@ -116,27 +116,6 @@ class ProductController extends Controller
         ];
     }
 
-    public function search(string $keywords)
-    {
-        $to_search = Functions::sanitize_search_query($keywords);
-
-        $products = Product::applyFilters()
-            ->select('products.*')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('variant_groups', 'variant_groups.product_id', '=', 'products.id')
-            ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variant_groups.id')
-            ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
-            ->whereRaw("MATCH(products.title, products.description) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-            ->orWhereRaw("MATCH(variant_options.value) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-            ->orWhereRaw("MATCH(categories.title) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-            ->distinct()
-            ->get();
-
-        return [
-            'products' => $products
-        ];
-    }
-
     public function product_full_create(ProductFullCreateRequest $request)
     {
         $product = DB::transaction(function () use ($request) {

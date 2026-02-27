@@ -12,16 +12,17 @@ class ProductQuery
 {
     public static function make(Request $request): Builder
     {
-        $query = Product::query()
-            ->select('products.*')
-            ->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-            ->leftJoin('variants', 'variants.product_id', '=', 'products.id')
-            ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variants.id')
-            ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
-            ->groupBy('products.id');
+        $query = Product::query()->select('products.*');
 
-        // 🔍 Search
+        // 🔍 Search Logic
         if ($request->filled('search')) {
+            // Move Joins here so they only run when searching
+            $query->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                ->leftJoin('variants', 'variants.product_id', '=', 'products.id')
+                ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variants.id')
+                ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
+                ->groupBy('products.id');
+
             $to_search = Functions::sanitize_search_query($request->search);
 
             $query->where(function ($q) use ($to_search) {
@@ -32,6 +33,7 @@ class ProductQuery
         }
 
         // 🎛 Filters
+        // Note: If ProductFilter also needs these joins, you might need a check inside the filter class
         $query = (new ProductFilter)->apply($query, $request->all());
 
         return $query;
