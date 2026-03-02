@@ -37,15 +37,17 @@ class Product extends Model
     public function toSearchableArray(): array
     {
         return [
-            'id'                 => (string) $this->id,
-            'title'              => $this->title,
-            'description'        => $this->description,
-            'category_id'        => (int) $this->category_id,
-            'category_title' => $this->category?->title,
-            'price_min' => (float) $this->variants->min(fn($v) => $v->price),
-            'price_max' => (float) $this->variants->max(fn($v) => $v->price),
-            'variant_option_ids' => $this->variants->flatMap->options->pluck('id')->map(fn($id) => (int) $id)->unique()->values()->toArray(),
-            'created_at'         => $this->created_at->timestamp,
+            'id'                   => (string) $this->id,
+            'title'                => $this->title,
+            'description'          => $this->description,
+            'category_id'          => (int) $this->category_id,
+            'category_title'       => $this->category?->title,
+            'price_min'            => (float) $this->variants?->min(fn($v) => $v->price),
+            'price_max'            => (float) $this->variants?->max(fn($v) => $v->price),
+            'variant_option_ids'   => $this->variants?->flatMap->variant_options->pluck('id')->map(fn($id) => (int) $id)->unique()->values()->toArray(),
+            'variant_options'      => $this->variants?->flatMap->variant_options->pluck('value')->unique()->implode(' '),
+            'variant_group_names'  => $this->variant_groups?->pluck('name')->unique()->implode(' '), // <-- new field
+            'created_at'           => $this->created_at->timestamp,
         ];
     }
 

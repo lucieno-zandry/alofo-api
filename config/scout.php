@@ -196,11 +196,13 @@ return [
                         ['name' => 'description', 'type' => 'string'],
                         ['name' => 'price_min', 'type' => 'float', 'facet' => true],
                         ['name' => 'price_max', 'type' => 'float', 'facet' => true],
+                        ['name' => 'variant_options', 'type' => 'string'],
+                        ['name' => 'variant_group_names', 'type' => 'string'],
                     ],
                     'default_sorting_field' => 'created_at',
                 ],
                 'search-parameters' => [
-                    'query_by' => 'title,description'
+                    'query_by' => 'title,description,category_title,variant_options,variant_group_names'
                 ],
             ]
         ],
