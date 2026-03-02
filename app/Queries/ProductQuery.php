@@ -2,40 +2,25 @@
 
 namespace App\Queries;
 
-use App\Filters\ProductFilter;
-use App\Helpers\Functions;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
 class ProductQuery
 {
-    public static function make(Request $request): Builder
+    public static function make(Request $request)
     {
-        $query = Product::query()->select('products.*');
-
-        // 🔍 Search Logic
         if ($request->filled('search')) {
-            // Move Joins here so they only run when searching
-            $query->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-                ->leftJoin('variants', 'variants.product_id', '=', 'products.id')
-                ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variants.id')
-                ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
-                ->groupBy('products.id');
-
-            $to_search = Functions::sanitize_search_query($request->search);
-
-            $query->where(function ($q) use ($to_search) {
-                $q->whereRaw("MATCH(products.title, products.description) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-                    ->orWhereRaw("MATCH(variant_options.value) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-                    ->orWhereRaw("MATCH(categories.title) AGAINST (? IN BOOLEAN MODE)", [$to_search]);
-            });
+            return Product::search($request->search)
+                ->query(function ($query) use ($request) {
+                    // All Eloquent-specific logic goes here
+                    return $query->with($request->relations())
+                        ->orderBySafe($request->orderBy(), $request->direction());
+                });
         }
 
-        // 🎛 Filters
-        // Note: If ProductFilter also needs these joins, you might need a check inside the filter class
-        $query = (new ProductFilter)->apply($query, $request->all());
-
-        return $query;
+        // Normal Eloquent flow
+        return Product::query()
+            ->with($request->relations())
+            ->orderBySafe($request->orderBy(), $request->direction());
     }
 }

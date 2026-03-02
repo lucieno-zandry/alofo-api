@@ -10,11 +10,12 @@ use App\Traits\WithRelationships;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
-    use HasFactory, WithRelationships, WithPagination, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithRelationships, WithPagination, DynamicConditionApplicable, ApplyFilters, Searchable;
 
     protected $fillable = [
         'title',
@@ -32,6 +33,22 @@ class Product extends Model
             }
         });
     }
+
+    // This defines the "Searchable Array" for the index
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'            => (string) $this->id, // Typesense IDs must be strings
+            'title'         => $this->title,
+            'description'   => $this->description,
+            'category'      => $this->category->title ?? 'Uncategorized',
+            // Flatten variants for searching
+            'variant_skus'  => $this->variants->pluck('sku')->toArray(),
+            'options'       => $this->variants->flatMap->options->pluck('value')->unique()->values()->toArray(),
+            'created_at'    => $this->created_at->timestamp,
+        ];
+    }
+
 
     public function category()
     {
