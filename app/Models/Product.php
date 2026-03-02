@@ -10,11 +10,12 @@ use App\Traits\WithRelationships;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
     /** @use HasFactory<\Database\Factories\ProductFactory> */
-    use HasFactory, WithRelationships, WithPagination, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithRelationships, WithPagination, DynamicConditionApplicable, ApplyFilters, Searchable;
 
     protected $fillable = [
         'title',
@@ -31,6 +32,20 @@ class Product extends Model
                 $image->delete();
             }
         });
+    }
+
+    public function toSearchableArray(): array
+    {
+        return [
+            'id'                 => (string) $this->id,
+            'title'              => $this->title,
+            'description'        => $this->description,
+            'category_id'        => (int) $this->category_id,
+            'price_min' => (float) $this->variants->min(fn($v) => $v->price),
+            'price_max' => (float) $this->variants->max(fn($v) => $v->price),
+            'variant_option_ids' => $this->variants->flatMap->options->pluck('id')->map(fn($id) => (int) $id)->unique()->values()->toArray(),
+            'created_at'         => $this->created_at->timestamp,
+        ];
     }
 
     public function category()

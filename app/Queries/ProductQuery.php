@@ -2,40 +2,45 @@
 
 namespace App\Queries;
 
-use App\Filters\ProductFilter;
-use App\Helpers\Functions;
 use App\Models\Product;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Laravel\Scout\Builder;
+
+use function Illuminate\Log\log;
 
 class ProductQuery
 {
     public static function make(Request $request): Builder
     {
-        $query = Product::query()->select('products.*');
+        $search = $request->filled('search') ? $request->search : '*';
+        $builder = Product::search($search);
 
-        // 🔍 Search Logic
-        if ($request->filled('search')) {
-            // Move Joins here so they only run when searching
-            $query->leftJoin('categories', 'categories.id', '=', 'products.category_id')
-                ->leftJoin('variants', 'variants.product_id', '=', 'products.id')
-                ->leftJoin('variant_variant_option', 'variant_variant_option.variant_id', '=', 'variants.id')
-                ->leftJoin('variant_options', 'variant_options.id', '=', 'variant_variant_option.variant_option_id')
-                ->groupBy('products.id');
-
-            $to_search = Functions::sanitize_search_query($request->search);
-
-            $query->where(function ($q) use ($to_search) {
-                $q->whereRaw("MATCH(products.title, products.description) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-                    ->orWhereRaw("MATCH(variant_options.value) AGAINST (? IN BOOLEAN MODE)", [$to_search])
-                    ->orWhereRaw("MATCH(categories.title) AGAINST (? IN BOOLEAN MODE)", [$to_search]);
-            });
+        if ($request->filled('category_id')) {
+            $builder->where('category_id', (int) $request->category_id);
         }
 
-        // 🎛 Filters
-        // Note: If ProductFilter also needs these joins, you might need a check inside the filter class
-        $query = (new ProductFilter)->apply($query, $request->all());
+        if ($request->filled('min_price')) {
+            $builder->where('price_min', '>=' . (float) $request->min_price);
+        }
+        
+        if ($request->filled('max_price')) {
+            $builder->where('price_max', '<=' . (float) $request->max_price);
+        }
 
-        return $query;
+        if ($request->filled('variant_option_ids')) {
+            // Ensure the array contains integers
+            $ids = is_array($request->variant_option_ids)
+                ? array_map('intval', $request->variant_option_ids)
+                : [(int) $request->variant_option_ids];
+
+            $builder->whereIn('variant_option_ids', $ids);
+        }
+
+        log($builder->wheres);
+
+        return $builder->query(function ($query) use ($request) {
+            return $query->with($request->relations())
+                ->orderBySafe($request->orderBy(), $request->direction());
+        });
     }
 }

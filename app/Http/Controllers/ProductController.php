@@ -96,8 +96,6 @@ class ProductController extends Controller
     public function index(ProductIndexRequest $request)
     {
         $products = ProductQuery::make($request)
-            ->with($request->relations())
-            ->orderBySafe($request->orderBy(), $request->direction())
             ->paginate($request->limit ?? 20);
 
         return response()->json($products);
