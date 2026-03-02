@@ -13,13 +13,16 @@ use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
 use App\Models\Product;
 use App\Queries\ProductQuery;
-use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Typesense\Client;
+
+use function Illuminate\Log\log;
 
 class ProductController extends Controller
 {
+
     public function store(ProductCreateRequest $request)
     {
         $data = $request->validated();
@@ -200,5 +203,63 @@ class ProductController extends Controller
     ) {
         $updated = $service->update($product, $request);
         return response()->json(['product' => $updated]);
+    }
+
+    public function price_range(Request $request)
+    {
+        $request->validate([
+            'category_id' => 'nullable|integer|exists:categories,id',
+        ]);
+
+        $cacheKey = 'price_range_' . ($request->category_id ?? 'all');
+        $ttl = now()->addMinutes(10);
+
+        $range = cache()->remember($cacheKey, $ttl, function () use ($request) {
+            $config = config('scout.typesense');
+            $clientConfig = $config['client-settings'];
+            $client = new \Typesense\Client($clientConfig);
+
+            $searchParams = [
+                'q'                => '*',
+                'query_by'         => 'title',
+                'facet_by'         => 'price_min,price_max',
+                'facet_stats'      => true,
+                'max_facet_values' => 1,
+            ];
+
+            if ($request->filled('category_id')) {
+                $searchParams['filter_by'] = 'category_id:=' . (int) $request->category_id;
+            }
+
+            $results = $client->collections['products']->documents->search($searchParams);
+
+            $minPrice = 0;
+            $maxPrice = 1000;
+
+            foreach ($results['facet_counts'] as $facet) {
+                if ($facet['field_name'] === 'price_min' && isset($facet['stats'])) {
+                    $minPrice = $facet['stats']['min'];
+                }
+                if ($facet['field_name'] === 'price_max' && isset($facet['stats'])) {
+                    $maxPrice = $facet['stats']['max'];
+                }
+            }
+
+            // Round min down, max up
+            $min = floor($minPrice);
+            $max = ceil($maxPrice);
+
+            // Compute dynamic step based on range width
+            $rangeWidth = $max - $min;
+            $step = max(1, (int) round($rangeWidth / 50)); // At least 1, roughly 2% of range
+
+            return [
+                'min'  => (float) $min,
+                'max'  => (float) $max,
+                'step' => $step,
+            ];
+        });
+
+        return response()->json($range);
     }
 }

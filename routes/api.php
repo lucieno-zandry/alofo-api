@@ -58,6 +58,7 @@ Route::prefix('product')
     ->group(function () {
         Route::get('all', 'index');
         Route::get('get/{slug}', 'show');
+        Route::get('price-range', 'price_range');
     });
 
 Route::prefix('variant')

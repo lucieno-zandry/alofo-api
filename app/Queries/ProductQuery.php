@@ -36,8 +36,6 @@ class ProductQuery
             $builder->whereIn('variant_option_ids', $ids);
         }
 
-        log($builder->wheres);
-
         return $builder->query(function ($query) use ($request) {
             return $query->with($request->relations())
                 ->orderBySafe($request->orderBy(), $request->direction());

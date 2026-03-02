@@ -41,6 +41,7 @@ class Product extends Model
             'title'              => $this->title,
             'description'        => $this->description,
             'category_id'        => (int) $this->category_id,
+            'category_title' => $this->category?->title,
             'price_min' => (float) $this->variants->min(fn($v) => $v->price),
             'price_max' => (float) $this->variants->max(fn($v) => $v->price),
             'variant_option_ids' => $this->variants->flatMap->options->pluck('id')->map(fn($id) => (int) $id)->unique()->values()->toArray(),
