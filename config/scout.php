@@ -185,20 +185,22 @@ return [
         'model-settings' => [
             Product::class => [
                 'collection-schema' => [
+                    'name'   => 'products',
                     'fields' => [
                         ['name' => 'id', 'type' => 'string'],
                         ['name' => 'title', 'type' => 'string'],
-                        ['name' => 'description', 'type' => 'string'],
-                        ['name' => 'category', 'type' => 'string', 'facet' => true],
-                        ['name' => 'variant_skus', 'type' => 'string[]'],
-                        ['name' => 'options', 'type' => 'string[]', 'facet' => true],
+                        ['name' => 'category_id', 'type' => 'int32', 'facet' => true],
+                        ['name' => 'variant_option_ids', 'type' => 'int32[]', 'facet' => true],
                         ['name' => 'created_at', 'type' => 'int64'],
+                        ['name' => 'description', 'type' => 'string'],
+                        ['name' => 'price_min', 'type' => 'float'],
+                        ['name' => 'price_max', 'type' => 'float'],
                     ],
                     'default_sorting_field' => 'created_at',
                 ],
                 'search-parameters' => [
-                    'query_by' => 'title'
-                ]
+                    'query_by' => 'title,description'
+                ],
             ]
         ],
         'import_action' => env('TYPESENSE_IMPORT_ACTION', 'upsert'),

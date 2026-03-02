@@ -34,21 +34,19 @@ class Product extends Model
         });
     }
 
-    // This defines the "Searchable Array" for the index
     public function toSearchableArray(): array
     {
         return [
-            'id'            => (string) $this->id, // Typesense IDs must be strings
-            'title'         => $this->title,
-            'description'   => $this->description,
-            'category'      => $this->category->title ?? 'Uncategorized',
-            // Flatten variants for searching
-            'variant_skus'  => $this->variants->pluck('sku')->toArray(),
-            'options'       => $this->variants->flatMap->options->pluck('value')->unique()->values()->toArray(),
-            'created_at'    => $this->created_at->timestamp,
+            'id'                 => (string) $this->id,
+            'title'              => $this->title,
+            'description'        => $this->description,
+            'category_id'        => (int) $this->category_id,
+            'price_min' => (float) $this->variants->min(fn($v) => $v->price),
+            'price_max' => (float) $this->variants->max(fn($v) => $v->price),
+            'variant_option_ids' => $this->variants->flatMap->options->pluck('id')->map(fn($id) => (int) $id)->unique()->values()->toArray(),
+            'created_at'         => $this->created_at->timestamp,
         ];
     }
-
 
     public function category()
     {
