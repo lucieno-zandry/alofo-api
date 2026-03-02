@@ -20,7 +20,7 @@ return new class extends Migration {
             $table->foreignIdFor(User::class);
             $table->foreignUuid('order_uuid');
             $table->softDeletes();
-            $table->enum('method', ['VISA', 'MASTERCARD', 'ORANGEMONEY', 'AIRTELMONEY', 'MVOLA', 'PAYPAL']);
+            $table->string('method');
             $table->text('payment_url')->nullable();
             $table->float('amount')->default(0);
         });
