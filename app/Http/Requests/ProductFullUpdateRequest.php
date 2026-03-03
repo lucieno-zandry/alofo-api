@@ -5,6 +5,8 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
+use function Illuminate\Log\log;
+
 class ProductFullUpdateRequest extends FormRequest
 {
     public function authorize(): bool
@@ -48,6 +50,21 @@ class ProductFullUpdateRequest extends FormRequest
             'variants.*.stock'          => ['required', 'integer'],
             'variants.*.option_refs'    => ['nullable', 'array'],
             'variants.*.option_refs.*'  => ['string'],
+            'variants.*.image' => ['nullable', 'image'],
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        $data = $this->all();
+
+        if (isset($data['variants']) && is_array($data['variants'])) {
+            foreach ($data['variants'] as &$variant) {
+                if (array_key_exists('image', $variant) && $variant['image'] === '') {
+                    $variant['image'] = null;
+                }
+            }
+            $this->merge(['variants' => $data['variants']]);
+        }
     }
 }

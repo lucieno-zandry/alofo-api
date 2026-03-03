@@ -9,8 +9,11 @@ use App\Models\VariantOption;
 use App\Models\AppImage;
 use App\Models\Image;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+
+use function Illuminate\Log\log;
 
 class ProductFullUpdateService
 {
@@ -194,6 +197,7 @@ class ProductFullUpdateService
         // Delete variants not in the incoming list
         $product->variants()->whereNotIn('id', $incomingIds)->delete();
 
+
         foreach ($incomingVariants as $variantData) {
             $variant = isset($variantData['id'])
                 ? Variant::find($variantData['id'])
@@ -206,13 +210,33 @@ class ProductFullUpdateService
                 'stock'         => $variantData['stock'],
             ];
 
+            // Image handling – only act if the 'image' key is present
+            if (array_key_exists('image', $variantData)) {
+                if (is_null($variantData['image'])) {
+                    // Explicit removal: delete existing image (if any)
+                    if ($variant && $variant->image) {
+                        $variant->image->delete();
+                    }
+                    $fields['image_id'] = null;
+                } elseif ($variantData['image'] instanceof UploadedFile) {
+                    // New upload: replace existing image
+                    if ($variant && $variant->image) {
+                        $variant->image->delete();
+                    }
+                    $image = Functions::store_uploaded_image($variantData['image'], 'products');
+                    $fields['image_id'] = $image->id;
+                }
+                // If 'image' key is present but not null and not a file (e.g., a string) – ignore (should not happen after transformation)
+            }
+            // If 'image' key is absent – keep existing image (do nothing)
+
             if ($variant) {
                 $variant->update($fields);
             } else {
                 $variant = $product->variants()->create($fields);
             }
 
-            // Resolve option refs ("GroupName:OptionValue") to option IDs
+            // Resolve option refs
             $optionIds = collect($variantData['option_refs'] ?? [])
                 ->map(fn($ref) => $optionRefMap[$ref]->id ?? null)
                 ->filter()

@@ -105,7 +105,7 @@ class ProductController extends Controller
     {
         $product = Product::with([
             'variant_groups' => fn($query) => $query->with('variant_options'),
-            'variants' => fn($query) => $query->with('variant_options'),
+            'variants' => fn($query) => $query->with('variant_options', 'image'),
             'images'
         ])->where('slug', $slug)->first();
 
@@ -161,12 +161,17 @@ class ProductController extends Controller
 
             // variants
             foreach ($request->variants ?? [] as $variantData) {
+                if (!empty($variantData['image'])) {
+                    $image = Functions::store_uploaded_image($variantData['image'], 'products');
+                    $variantData['image_id'] = $image->id;
+                }
 
                 $variant = $product->variants()->create([
                     'sku' => $variantData['sku'],
                     'price' => $variantData['price'],
                     'special_price' => $variantData['special_price'] ?? null,
                     'stock' => $variantData['stock'],
+                    'image_id' => $variantData['image_id'] ?? null,
                 ]);
 
                 if (!empty($variantData['option_refs'])) {

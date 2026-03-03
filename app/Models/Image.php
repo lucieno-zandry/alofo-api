@@ -44,14 +44,6 @@ class Image extends Model
         });
     }
 
-    public function deleteIfUnused(): void
-    {
-        if ($this->products()->count() === 0) {
-            Storage::disk($this->disk)->delete($this->path);
-            $this->delete();
-        }
-    }
-
     public function getUrlAttribute()
     {
         return Storage::disk($this->disk)->url($this->path);

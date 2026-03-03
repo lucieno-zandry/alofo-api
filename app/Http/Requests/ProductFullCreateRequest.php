@@ -46,6 +46,7 @@ class ProductFullCreateRequest extends FormRequest
             'variants.*.price' => ['required', 'numeric'],
             'variants.*.special_price' => ['nullable', 'numeric'],
             'variants.*.stock' => ['required', 'integer'],
+            'variants.*.image' => ['nullable', 'image'],
 
             // option references
             'variants.*.option_refs' => ['nullable', 'array'],
