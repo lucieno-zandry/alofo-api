@@ -122,17 +122,32 @@ class Functions
         ];
     }
 
-    public static function get_frontend_url(?string $env_pathname)
+    public static function get_lang(): string
+    {
+        $lang = app()->getLocale() ?? 'en';
+        return $lang;
+    }
+
+    public static function get_frontend_url(?string $env_pathname = null)
     {
         $frontend_url = request('Origin') ?? env('FRONTEND_URL');
-        $lang = app()->getLocale();
+        $lang = self::get_lang();
         $url = "$frontend_url/$lang";
 
-        $pathname = env($env_pathname);
+        $pathname = $env_pathname ? env($env_pathname) : null;
 
         if ($pathname)
             $url = "$url/$pathname";
 
         return $url;
+    }
+
+    public static function get_transaction_redirect_url(string $order_uuid): string
+    {
+        $frontend_url = self::get_frontend_url();
+        $lang = self::get_lang();
+        $redirect_url = "$frontend_url/order/$order_uuid";
+
+        return $redirect_url;
     }
 }

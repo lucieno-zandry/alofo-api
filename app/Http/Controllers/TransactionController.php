@@ -26,10 +26,11 @@ class TransactionController extends Controller
         $uuid = Str::uuid()->toString();
         $data['uuid'] = $uuid;
 
+
         // À mettre à jour lors d'une réelle mise en place de méthode de paiement;
 
         $token = request()->header('Authorization');
-        $redirect_url = "http://localhost:5173/order/{$request->order_uuid}";
+        $redirect_url = Functions::get_transaction_redirect_url($request->order_uuid);
         $payment_url = "http://127.0.0.1:5500/index.html?amount={$request->amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}";
 
         $data['payment_url'] = urlencode($payment_url);
