@@ -44,7 +44,6 @@ class ProductFullCreateRequest extends FormRequest
             'variants' => ['nullable', 'array'],
             'variants.*.sku' => ['required', 'min:2'],
             'variants.*.price' => ['required', 'numeric'],
-            'variants.*.special_price' => ['nullable', 'numeric'],
             'variants.*.stock' => ['required', 'integer'],
             'variants.*.image' => ['nullable', 'image'],
 

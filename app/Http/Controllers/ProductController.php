@@ -104,8 +104,12 @@ class ProductController extends Controller
     public function show(string $slug)
     {
         $product = Product::with([
-            'variant_groups' => fn($query) => $query->with('variant_options'),
-            'variants' => fn($query) => $query->with('variant_options', 'image'),
+            'variant_groups' => fn($q) => $q->with('variant_options'),
+            'variants' => fn($q) => $q->with([
+                'variant_options',
+                'image',
+                'promotions' => fn($q) => $q->active() // eager load active promotions
+            ]),
             'images'
         ])->where('slug', $slug)->first();
 
@@ -169,7 +173,6 @@ class ProductController extends Controller
                 $variant = $product->variants()->create([
                     'sku' => $variantData['sku'],
                     'price' => $variantData['price'],
-                    'special_price' => $variantData['special_price'] ?? null,
                     'stock' => $variantData['stock'],
                     'image_id' => $variantData['image_id'] ?? null,
                 ]);

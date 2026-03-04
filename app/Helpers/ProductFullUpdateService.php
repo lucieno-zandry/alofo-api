@@ -206,7 +206,6 @@ class ProductFullUpdateService
             $fields = [
                 'sku'           => $variantData['sku'],
                 'price'         => $variantData['price'],
-                'special_price' => $variantData['special_price'] ?? null,
                 'stock'         => $variantData['stock'],
             ];
 

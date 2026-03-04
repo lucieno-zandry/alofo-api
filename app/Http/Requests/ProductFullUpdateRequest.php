@@ -46,7 +46,6 @@ class ProductFullUpdateRequest extends FormRequest
             'variants.*.id'             => ['nullable', 'integer', 'exists:variants,id'],
             'variants.*.sku'            => ['required', 'min:2'],
             'variants.*.price'          => ['required', 'numeric'],
-            'variants.*.special_price'  => ['nullable', 'numeric'],
             'variants.*.stock'          => ['required', 'integer'],
             'variants.*.option_refs'    => ['nullable', 'array'],
             'variants.*.option_refs.*'  => ['string'],
