@@ -1,68 +1,88 @@
 <?php
 
-
 namespace App\Helpers;
 
 use App\Models\CartItem;
-use App\Models\Promotion;
 use App\Models\Variant;
-
-use function Illuminate\Log\log;
 
 class CartItemHelpers
 {
-    public static function make_item(CartItem $cart_item, array $data = []): CartItem
+    /**
+     * Create or update a cart item with current prices and snapshots.
+     *
+     * @param CartItem $cartItem
+     * @param array $data
+     * @param Variant|null $variant Pre‑loaded variant to avoid extra query
+     * @return CartItem
+     */
+    public static function make_item(CartItem $cartItem, array $data = [], ?Variant $variant = null): CartItem
     {
-        if (!empty($data)) {
-            foreach ($data as $key => $value) {
-                $cart_item->$key = $value;
-            }
-        } else {
-            $data = $cart_item->toArray();
+        // Fill basic attributes
+        foreach ($data as $key => $value) {
+            $cartItem->$key = $value;
         }
 
-        /** @var ?Variant */
-        $variant = request()->variant ?: Variant::find($cart_item->variant_id);
-
-        /** @var ?Promotion */
-        $promotion = $cart_item->promotion_id ? Promotion::find($cart_item->promotion_id) : null;
-
-        if ($variant) {
-            $cart_item->variant_snapshot = [
-                'id'            => $variant->id,
-                'sku'           => $variant->sku,
-                'price'         => $variant->price,
-                'special_price' => $variant->special_price,
-                'image'         => $variant->image?->url ?? null,
-            ];
-
-            $variant->load(['product', 'variant_options.variant_group']);
-
-            $cart_item->product_snapshot = [
-                'id' => $variant->product->id,
-                'title' => $variant->product->title,
-                'slug' => $variant->product->slug,
-                'category_id' => $variant->product->category_id,
-                'main_image' => $variant->product->images->first()?->url ?? null,
-            ];
-
-            $variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
-
-            $cart_item->variant_options_snapshot = $variant_options_snapshot;
+        // Load variant with necessary relations if not provided
+        if (!$variant) {
+            $variant = Variant::with([
+                'promotions',
+                'product.images',
+                'variant_options.variant_group',
+                'image'
+            ])->find($cartItem->variant_id);
         }
 
-        $cart_item->promotion_discount_applied = 0;
-
-        $cart_item->unit_price = $variant->get_price();
-
-        $cart_item->total = $cart_item->unit_price * $data['count'];
-
-        if ($promotion) {
-            $cart_item->total = DiscountHelpers::apply_discount($promotion, $cart_item->total);
-            $cart_item->promotion_discount_applied = $promotion->applied_discount;
+        if (!$variant) {
+            throw new \Exception("Variant not found for cart item.");
         }
 
-        $cart_item->save();
-        return $cart_item;
+        // Compute effective price for the current user
+        $effectivePrice = $variant->getEffectivePrice(); // uses auth()->user()
+        $basePrice = $variant->price;
+
+        // Get applied promotions (already filtered for user)
+        $appliedPromotions = $variant->getAppliedPromotions(); // returns Collection of Promotion models
+
+        // Build snapshot of applied promotions for frontend badges
+        $promotionsSnapshot = $appliedPromotions->map(fn($promo) => [
+            'id'       => $promo->id,
+            'name'     => $promo->name,          // assuming a name field exists
+            'badge'    => $promo->badge,         // optional badge text/identifier
+            'discount' => $promo->discount,
+            'type'     => $promo->type,
+        ])->values()->toArray();
+
+        // --- Snapshots ---
+        // Variant snapshot (base price only, effective price is stored separately)
+        $cartItem->variant_snapshot = [
+            'id'    => $variant->id,
+            'sku'   => $variant->sku,
+            'price' => $variant->price,
+            'image' => $variant->image?->url ?? null,
+        ];
+
+        // Product snapshot
+        $cartItem->product_snapshot = [
+            'id'          => $variant->product->id,
+            'title'       => $variant->product->title,
+            'slug'        => $variant->product->slug,
+            'category_id' => $variant->product->category_id,
+            'main_image'  => $variant->product->images->first()?->url ?? null,
+        ];
+
+        // Variant options snapshot
+        $cartItem->variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
+
+        // --- Pricing ---
+        $cartItem->unit_price = $effectivePrice;
+        $cartItem->promotion_discount_applied = $basePrice - $effectivePrice; // total discount
+        $cartItem->total = $effectivePrice * $data['count'];
+
+        // Store applied promotions snapshot (new JSON column)
+        $cartItem->applied_promotions_snapshot = $promotionsSnapshot;
+
+        $cartItem->save();
+
+        return $cartItem;
     }
 }

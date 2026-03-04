@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\CartItemHelpers;
-use App\Helpers\Functions;
 use App\Helpers\OrderHelpers;
 use App\Http\Requests\CartItemCreateRequest;
 use App\Http\Requests\CartItemDeleteRequest;
@@ -11,11 +10,8 @@ use App\Http\Requests\CartItemUpdateRequest;
 use App\Models\CartItem;
 use App\Models\Variant;
 
-use function Illuminate\Log\log;
-
 class CartItemController extends Controller
 {
-
     public function store(CartItemCreateRequest $request, Variant $variant)
     {
         $data = $request->validated();
@@ -24,72 +20,76 @@ class CartItemController extends Controller
         $data['variant_id'] = $variant->id;
         $data['product_id'] = $variant->product_id;
 
-        $cart_item = CartItemHelpers::make_item(
+        // Pass the variant directly to avoid an extra query
+        $cartItem = CartItemHelpers::make_item(
             new CartItem(),
             $data,
-            $request->promotion
+            $variant
         );
 
         return [
-            'cart_item' => $cart_item
+            'cart_item' => $cartItem
         ];
     }
 
-    public function update(CartItemUpdateRequest $request, CartItem $cart_item)
+    public function update(CartItemUpdateRequest $request, CartItem $cartItem)
     {
         $data = $request->validated();
 
-        // Fill in the required data in order to make the cart item
-        $data['variant_id'] = $cart_item->variant_id;
+        $data['variant_id'] = $cartItem->variant_id;
 
-        if (!isset($data['count']))
-            $data['count'] = $cart_item->count;
+        if (!isset($data['count'])) {
+            $data['count'] = $cartItem->count;
+        }
+
+        // Reload variant with relations for accurate price calculation
+        $variant = Variant::with(['promotions', 'product.images', 'variant_options.variant_group', 'image'])
+            ->find($cartItem->variant_id);
 
         CartItemHelpers::make_item(
-            $cart_item,
+            $cartItem,
             $data,
-            $request->promotion
-        )
-            ->save();
+            $variant
+        );
 
-        // Refresh the order to ajust informations
-        if ($cart_item->order)
-            OrderHelpers::refresh_order($cart_item->order);
+        // Refresh the order if this item belongs to one
+        if ($cartItem->order) {
+            OrderHelpers::refresh_order($cartItem->order);
+        }
 
         return [
-            'cart_item' => $cart_item
+            'cart_item' => $cartItem
         ];
     }
 
     public function destroy(CartItemDeleteRequest $request)
     {
-        $cart_item_ids = explode(',', $request->cart_item_ids);
-
-        $deleted = CartItem::whereIn('id', $cart_item_ids)->delete();
+        $cartItemIds = explode(',', $request->cart_item_ids);
+        $deleted = CartItem::whereIn('id', $cartItemIds)->delete();
 
         return [
             'deleted' => $deleted
         ];
     }
 
-    public function show(int $cart_item_id)
+    public function show(int $cartItemId)
     {
-        $cart_item = CartItem::withRelations()->find($cart_item_id);
+        $cartItem = CartItem::withRelations()->find($cartItemId);
 
         return [
-            'cart_item' => $cart_item
+            'cart_item' => $cartItem
         ];
     }
 
     public function index()
     {
-        $cart_items = CartItem::applyFilters()
+        $cartItems = CartItem::applyFilters()
             ->where('user_id', auth()->id())
             ->notOrdered()
             ->get();
 
         return [
-            'cart_items' => $cart_items
+            'cart_items' => $cartItems
         ];
     }
 }

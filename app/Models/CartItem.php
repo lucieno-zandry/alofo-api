@@ -18,7 +18,6 @@ class CartItem extends Model
     protected $fillable = [
         'count',
         'variant_id',
-        'promotion_id',
         'user_id',
         'product_id',
         'unit_price',
@@ -31,6 +30,7 @@ class CartItem extends Model
         'product_snapshot' => 'array',
         'variant_snapshot' => 'array',
         'variant_options_snapshot' => 'array',
+        'applied_promotions_snapshot' => 'array'
     ];
 
     public function is_not_ordered()

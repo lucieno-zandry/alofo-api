@@ -29,23 +29,6 @@ class CartItemCreateRequest extends FormRequest
     {
         return [
             'count' => ['required', 'numeric', 'min:1', new InStock($this->variant)],
-            'promotion_id' => [
-                'nullable',
-                'exists:promotions,id',
-                new BelongsToOne(
-                    $this->promotion,
-                    'variants',
-                    request('variant_id')
-                ),
-                new IsActive($this->promotion),
-            ]
         ];
-    }
-
-    public function prepareForValidation()
-    {
-        if ($this->promotion_id) {
-            $this->promotion = Promotion::where('id', $this->promotion_id)->first();
-        }
     }
 }
