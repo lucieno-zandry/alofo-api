@@ -188,21 +188,22 @@ return [
                     'name'   => 'products',
                     'fields' => [
                         ['name' => 'id', 'type' => 'string'],
-                        ['name' => 'title', 'type' => 'string'],
+                        ['name' => 'title', 'type' => 'string', 'infix' => true],          // <-- add infix
                         ['name' => 'category_id', 'type' => 'int32', 'facet' => true],
-                        ['name' => 'category_title', 'type' => 'string'],
+                        ['name' => 'category_title', 'type' => 'string', 'infix' => true], // <-- add infix
                         ['name' => 'variant_option_ids', 'type' => 'int32[]', 'facet' => true],
                         ['name' => 'created_at', 'type' => 'int64'],
-                        ['name' => 'description', 'type' => 'string'],
+                        ['name' => 'description', 'type' => 'string', 'infix' => true],    // optional
                         ['name' => 'price_min', 'type' => 'float', 'facet' => true],
                         ['name' => 'price_max', 'type' => 'float', 'facet' => true],
-                        ['name' => 'variant_options', 'type' => 'string'],
-                        ['name' => 'variant_group_names', 'type' => 'string'],
+                        ['name' => 'variant_options', 'type' => 'string', 'infix' => true], // optional
+                        ['name' => 'variant_group_names', 'type' => 'string', 'infix' => true], // optional
                     ],
                     'default_sorting_field' => 'created_at',
                 ],
                 'search-parameters' => [
-                    'query_by' => 'title,description,category_title,variant_options,variant_group_names'
+                    'query_by' => 'title,description,category_title,variant_options,variant_group_names',
+                    'infix'    => 'always',
                 ],
             ]
         ],
