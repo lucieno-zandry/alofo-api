@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -12,9 +13,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 
+use function Illuminate\Log\log;
+
 class Variant extends Model
 {
-    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
 
     protected $fillable = [
         'product_id',
@@ -23,58 +26,6 @@ class Variant extends Model
         'stock',
         'image_id'
     ];
-
-    // In app/Models/Variant.php
-
-    protected $appends = ['effective_price']; // or add conditionally
-
-    public function getEffectivePriceAttribute(): float
-    {
-        return $this->getEffectivePrice(); // uses currently authenticated user
-    }
-
-    /**
-     * Get the effective price for the current user based on applicable promotions.
-     *
-     * @param \App\Models\User|null $user If null, uses auth()->user()
-     * @return float
-     */
-    public function getEffectivePrice(?User $user = null): float
-    {
-        $user = $user ?? auth()->user();
-        $basePrice = $this->price;
-
-        // If no user or user cannot see special prices, return base price
-        if (!$user || !$user->canUseSpecialPrices()) {
-            return $basePrice;
-        }
-
-        // Load promotions if not already loaded
-        if (!$this->relationLoaded('promotions')) {
-            $this->load(['promotions' => fn($q) => $q->active()]);
-        }
-
-        $applicablePromotions = $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
-
-        if ($applicablePromotions->isEmpty()) {
-            return $basePrice;
-        }
-
-        return $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
-    }
-
-    /**
-     * Determine if a promotion is applicable to the given user.
-     */
-    protected function isPromotionApplicable(Promotion $promotion, User $user): bool
-    {
-        // Check applies_to rules
-        return match ($promotion->applies_to) {
-            'client_code_only' => $user->client_code_id !== null,
-            'regular_only'     => $user->client_code_id === null,
-            default             => true, // 'all'
-        };
-    }
 
     /**
      * Calculate final price by applying promotions according to stacking rules.
@@ -121,6 +72,65 @@ class Variant extends Model
     }
 
     /**
+     * Get the effective price for the current user based on applicable promotions.
+     *
+     * @param \App\Models\User|null $user If null, uses auth()->user()
+     * @return float
+     */
+    public function getEffectivePrice(?User $user = null): float
+    {
+        $user = $user ?? auth()->user();
+        log("user : ");
+        log($user);
+        $basePrice = $this->price;
+
+        // Load promotions if not already loaded
+        if (!$this->relationLoaded('promotions')) {
+            $this->load(['promotions' => fn($q) => $q->active()]);
+        }
+
+        $applicablePromotions = $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
+
+        if ($applicablePromotions->isEmpty()) {
+            return $basePrice;
+        }
+
+        return $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
+    }
+
+    /**
+     * Determine if a promotion is applicable to the given user (may be null for guests).
+     */
+    protected function isPromotionApplicable(Promotion $promotion, ?User $user): bool
+    {
+        // Guest users: only 'all' promotions are applicable
+        if (!$user) {
+            return $promotion->applies_to === 'all';
+        }
+
+        // Authenticated user logic based on client_code_id
+        return match ($promotion->applies_to) {
+            'client_code_only' => $user->client_code_id !== null,
+            'regular_only'     => $user->client_code_id === null,
+            default            => true, // 'all'
+        };
+    }
+
+    /**
+     * Get all promotions that are currently applied (for badge display).
+     */
+    public function getAppliedPromotions(?User $user = null): Collection
+    {
+        $user = $user ?? auth()->user();
+
+        if (!$this->relationLoaded('promotions')) {
+            $this->load(['promotions' => fn($q) => $q->active()]);
+        }
+
+        return $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
+    }
+
+    /**
      * Apply a single promotion to a given price.
      */
     protected function applySinglePromotion(float $currentPrice, Promotion $promotion): float
@@ -132,22 +142,6 @@ class Variant extends Model
         }
     }
 
-    /**
-     * Get all promotions that are currently applied (for badge display).
-     */
-    public function getAppliedPromotions(?User $user = null): Collection
-    {
-        $user = $user ?? auth()->user();
-        if (!$user || !$user->canUseSpecialPrices()) {
-            return collect();
-        }
-
-        if (!$this->relationLoaded('promotions')) {
-            $this->load(['promotions' => fn($q) => $q->active()]);
-        }
-
-        return $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
-    }
 
     // Relationships
     public function product()

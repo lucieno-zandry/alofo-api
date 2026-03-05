@@ -95,27 +95,36 @@ class ProductController extends Controller
 
     public function index(ProductIndexRequest $request)
     {
-        $products = ProductQuery::make($request)
-            ->paginate($request->limit ?? 20);
+        $products = ProductQuery::make($request)->paginate($request->limit ?? 20);
+
+        $user = auth('sanctum')->user();
+
+        foreach ($products as $product) {
+            if ($product->relationLoaded('variants')) {
+                foreach ($product->variants as $variant) {
+                    $variant->setEffectivePriceForUser($user);
+                }
+            }
+        }
 
         return response()->json($products);
     }
 
-    public function show(string $slug)
+    public function show(string $slug): array
     {
         $product = Product::with([
-            'variant_groups' => fn($q) => $q->with('variant_options'),
-            'variants' => fn($q) => $q->with([
-                'variant_options',
-                'image',
-                'promotions' => fn($q) => $q->active() // eager load active promotions
-            ]),
+            'variant_groups.variant_options',
+            'variants' => fn($q) => $q->with(['variant_options', 'image', 'promotions' => fn($q) => $q->active()]),
             'images'
-        ])->where('slug', $slug)->first();
+        ])->where('slug', $slug)->firstOrFail();
 
-        return [
-            'product' => $product
-        ];
+        $user = auth('sanctum')->user();
+
+        foreach ($product->variants as $variant) {
+            $variant->setEffectivePriceForUser($user);
+        }
+
+        return ['product' => $product];
     }
 
     public function product_full_create(ProductFullCreateRequest $request)
