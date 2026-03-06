@@ -188,11 +188,11 @@ return [
                     'name'   => 'products',
                     'fields' => [
                         ['name' => 'id', 'type' => 'string'],
-                        ['name' => 'title', 'type' => 'string', 'infix' => true],          // <-- add infix
+                        ['name' => 'title', 'type' => 'string', 'infix' => true, 'sort' => true],          // <-- add infix
                         ['name' => 'category_id', 'type' => 'int32', 'facet' => true],
                         ['name' => 'category_title', 'type' => 'string', 'infix' => true], // <-- add infix
                         ['name' => 'variant_option_ids', 'type' => 'int32[]', 'facet' => true],
-                        ['name' => 'created_at', 'type' => 'int64'],
+                        ['name' => 'created_at', 'type' => 'int64', 'sort' => true],
                         ['name' => 'description', 'type' => 'string', 'infix' => true],    // optional
                         ['name' => 'price_min', 'type' => 'float', 'facet' => true],
                         ['name' => 'price_max', 'type' => 'float', 'facet' => true],

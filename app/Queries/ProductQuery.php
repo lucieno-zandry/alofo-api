@@ -6,8 +6,6 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Laravel\Scout\Builder;
 
-use function Illuminate\Log\log;
-
 class ProductQuery
 {
     public static function make(Request $request): Builder
@@ -22,7 +20,7 @@ class ProductQuery
         if ($request->filled('min_price')) {
             $builder->where('price_min', '>=' . (float) $request->min_price);
         }
-        
+
         if ($request->filled('max_price')) {
             $builder->where('price_max', '<=' . (float) $request->max_price);
         }
@@ -39,8 +37,7 @@ class ProductQuery
         $builder->options(['infix' => 'always']);
 
         return $builder->query(function ($query) use ($request) {
-            return $query->with($request->relations())
-                ->orderBySafe($request->orderBy(), $request->direction());
-        });
+            return $query->with($request->relations());
+        })->orderBy($request->orderBy(), $request->direction());
     }
 }
