@@ -56,6 +56,7 @@ class ProductFullUpdateRequest extends FormRequest
     public function prepareForValidation()
     {
         $data = $this->all();
+        $merge = [];
 
         if (isset($data['variants']) && is_array($data['variants'])) {
             foreach ($data['variants'] as &$variant) {
@@ -63,7 +64,14 @@ class ProductFullUpdateRequest extends FormRequest
                     $variant['image'] = null;
                 }
             }
-            $this->merge(['variants' => $data['variants']]);
+            $merge['variants'] = $data['variants'];
         }
+
+        if ($this->slug) {
+            $slug = uuid_create() . '-' . $this->slug;
+            $merge['slug'] = $slug;
+        }
+
+        $this->merge($merge);
     }
 }

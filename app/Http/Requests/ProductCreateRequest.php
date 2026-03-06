@@ -34,7 +34,7 @@ class ProductCreateRequest extends FormRequest
     public function prepareForValidation()
     {
         if ($this->slug) {
-            $slug = uuid_create() . $this->slug;
+            $slug = uuid_create() . '-' . $this->slug;
             $this->merge(["slug" => $slug]);
         }
     }
