@@ -222,6 +222,7 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                     Route::post('create', 'store');
                     Route::put('update/{shipment}', 'update');
                     Route::delete('delete', 'destroy');
+                    Route::post('bulk-update-shipment', 'bulkUpdateShipment');
                 });
 
             Route::prefix('notifications')->controller(NotificationController::class)->group(function () {

@@ -10,6 +10,7 @@ use App\Http\Requests\OrderUpdateRequest;
 use App\Models\Address;
 use App\Models\CartItem;
 use App\Models\Order;
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -67,15 +68,77 @@ class OrderController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::applyFilters()
-            ->customerFilterable()
-            ->get();
+        $query = Order::query();
 
-        return [
-            'orders' => $orders
-        ];
+        // Eager load relationships if requested (e.g., ?with=user,shipments)
+        if ($request->has('with')) {
+            $relations = explode(',', $request->with);
+            $query->with($relations);
+        }
+
+        // Apply customer filter (if role is customer)
+        $query->customerFilterable();
+
+        // Apply sorting from 'sort' parameter (e.g., 'created_at' or '-created_at')
+        if ($request->has('sort')) {
+            $sort = $request->sort;
+            $direction = 'asc';
+            if (str_starts_with($sort, '-')) {
+                $direction = 'desc';
+                $sort = substr($sort, 1);
+            }
+            $query->orderBy($sort, $direction);
+        }
+
+        // Apply search (if you need to implement it)
+        if ($request->has('search') && !empty($request->search)) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('uuid', 'like', "%{$search}%")
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('email', 'like', "%{$search}%")
+                            ->orWhere('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Apply date range filters
+        if ($request->has('date_from')) {
+            $query->whereDate('created_at', '>=', $request->date_from);
+        }
+        if ($request->has('date_to')) {
+            $query->whereDate('created_at', '<=', $request->date_to);
+        }
+
+        // Apply payment status filter (you'll need to join/whereHas transactions)
+        if ($request->has('payment_status') && !empty($request->payment_status)) {
+            $query->whereHas('transactions', function ($tQuery) use ($request) {
+                $tQuery->where('status', $request->payment_status);
+            });
+        }
+
+        // Apply shipment status filter
+        if ($request->has('shipment_status') && !empty($request->shipment_status)) {
+            $query->whereHas('shipments', function ($sQuery) use ($request) {
+                $sQuery->where('status', $request->shipment_status);
+            });
+        }
+
+        if ($request->has('total_min')) {
+            $query->where('total', '>=', $request->total_min);
+        }
+        
+        if ($request->has('total_max')) {
+            $query->where('total', '<=', $request->total_max);
+        }
+
+        // Paginate using standard Laravel pagination
+        $perPage = $request->get('per_page', 20);
+        $orders = $query->paginate($perPage);
+
+        return response()->json($orders);
     }
 
     public function show(string $order_uuid)

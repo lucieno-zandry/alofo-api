@@ -130,7 +130,7 @@ class Functions
 
     public static function get_frontend_url(?string $env_pathname = null)
     {
-        $frontend_url = request('Origin') ?? env('FRONTEND_URL');
+        $frontend_url = request()->get('origin', env('FRONTEND_URL'));
         $lang = self::get_lang();
         $url = "$frontend_url/$lang";
 
@@ -142,10 +142,9 @@ class Functions
         return $url;
     }
 
-    public static function get_transaction_redirect_url(string $order_uuid): string
+    public static function get_order_detail_page_url(string $order_uuid): string
     {
         $frontend_url = self::get_frontend_url();
-        $lang = self::get_lang();
         $redirect_url = "$frontend_url/order/$order_uuid";
 
         return $redirect_url;
