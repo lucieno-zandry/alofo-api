@@ -8,24 +8,17 @@ use Illuminate\Validation\Rule;
 
 class TransactionUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
-        return $this->transaction?->status !== TransactionStatus::SUCCESS->value;
+        // Gateway callbacks should never update an already-succeeded transaction
+        return $this->route('transaction')?->status !== TransactionStatus::SUCCESS->value;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
-            'status' => [Rule::enum(TransactionStatus::class)],
-            'informations' => ['nullable'],
+            'status'       => ['sometimes', Rule::enum(TransactionStatus::class)],
+            'informations' => ['nullable', 'array'],
         ];
     }
 }

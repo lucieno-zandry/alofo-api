@@ -102,6 +102,8 @@ Route::prefix('client-code')
         });
     });
 
+
+
 Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
     ->group(function () {
         Route::prefix('address')
@@ -204,16 +206,6 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
                     Route::delete('delete', 'destroy');
                 });
 
-            Route::prefix('transaction')
-                ->controller(TransactionController::class)
-                ->group(function () {
-                    Route::get('get/{transaction_id}', 'show');
-                    Route::get('all', 'index');
-                    Route::post('create', 'store');
-                    Route::put('update/{transaction}', 'update');
-                    Route::delete('delete', 'destroy');
-                });
-
             Route::prefix('shipment')
                 ->controller(ShipmentController::class)
                 ->group(function () {
@@ -235,3 +227,66 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
             });
         });
     });
+
+Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])->group(function () {
+
+    // ── Standard CRUD ────────────────────────────────────────────────────────
+    Route::get('transactions',           [TransactionController::class, 'index']);
+    Route::post('transactions',           [TransactionController::class, 'store']);
+    Route::get('transactions/{transaction_uuid}', [TransactionController::class, 'show']);
+    Route::put('transactions/{transaction}', [TransactionController::class, 'update']);
+    Route::delete('transactions',           [TransactionController::class, 'destroy']);
+
+    // ── Export (admin + manager) ─────────────────────────────────────────────
+    Route::get('transactions/export', [TransactionController::class, 'export']);
+
+    // ── Admin / finance actions ───────────────────────────────────────────────
+    Route::middleware(EnsureUserIsApproved::class)->group(function () {
+
+        // Manual status override (requires reason, fully audited)
+        Route::patch(
+            'transactions/{transaction}/override-status',
+            [TransactionController::class, 'overrideStatus']
+        );
+
+        // Initiate a refund (partial or full) — creates a new REFUND transaction
+        Route::post(
+            'transactions/{transaction}/refund',
+            [TransactionController::class, 'refund']
+        );
+
+        // Resend payment success/failure notification to the customer
+        Route::post(
+            'transactions/{transaction}/resend-notification',
+            [TransactionController::class, 'resendNotification']
+        );
+
+        // Bulk-mark transactions as reviewed
+        Route::post(
+            'transactions/bulk-review',
+            [TransactionController::class, 'bulkReview']
+        );
+
+        // Dispute lifecycle
+        Route::post(
+            'transactions/{transaction}/dispute',
+            [TransactionController::class, 'openDispute']
+        );
+        Route::patch(
+            'transactions/{transaction}/dispute',
+            [TransactionController::class, 'resolveDispute']
+        );
+    });
+
+    // ── Audit trail & webhook logs (admin + manager) ─────────────────────────
+    Route::middleware(['role:admin,manager'])->group(function () {
+        Route::get(
+            'transactions/{transaction}/audit-logs',
+            [TransactionController::class, 'auditLogs']
+        );
+        Route::get(
+            'transactions/{transaction}/webhook-logs',
+            [TransactionController::class, 'webhookLogs']
+        );
+    });
+});

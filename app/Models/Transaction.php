@@ -30,7 +30,15 @@ class Transaction extends Model
         'amount',
         'payment_url',
         'uuid',
-        'method'
+        'method',
+        'payment_reference',
+        'reviewed_at',
+        'reviewed_by',
+        'notes',
+        'dispute_status',
+        'dispute_opened_at',
+        'dispute_resolved_at',
+
     ];
 
     public function user()
@@ -41,5 +49,25 @@ class Transaction extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_uuid');
+    }
+
+    public function audit_logs()
+    {
+        return $this->hasMany(TransactionAuditLog::class, 'transaction_uuid');
+    }
+
+    public function parent_transaction()
+    {
+        return $this->belongsTo(Transaction::class, 'parent_transaction_uuid');
+    }
+
+    public function child_transactions()
+    {
+        return $this->hasMany(Transaction::class, 'parent_transaction_uuid');
+    }
+
+    public function reviewed_by()
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
     }
 }
