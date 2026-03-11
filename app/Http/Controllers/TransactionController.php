@@ -13,6 +13,7 @@ use App\Http\Requests\TransactionOverrideStatusRequest;
 use App\Http\Requests\TransactionRefundRequest;
 use App\Http\Requests\TransactionBulkReviewRequest;
 use App\Http\Requests\TransactionBulkExportRequest;
+use App\Http\Requests\TransactionIndexRequest;
 use App\Models\Transaction;
 use App\Models\TransactionAuditLog;
 use App\Jobs\FailPendingTransaction;
@@ -28,15 +29,102 @@ class TransactionController extends Controller
     // LIST
     // -------------------------------------------------------------------------
 
-    public function index(Request $request)
+    public function index(TransactionIndexRequest $request)
     {
-        $transactions = Transaction::applyFilters()
-            ->customerFilterable()
-            ->with(['user', 'order'])
-            ->paginate($request->integer('per_page', 25));
+        $validated = $request->validated();
+
+        $perPage = (int) ($validated['per_page'] ?? 25);
+
+        // Allowlist for sorting to prevent SQL injection
+        $allowedSortBy = ['created_at', 'amount', 'status'];
+        $sortBy = in_array($validated['sort_by'] ?? 'created_at', $allowedSortBy)
+            ? $validated['sort_by']
+            : 'created_at';
+
+        $sortDir = $validated['sort_dir'] ?? 'desc';
+
+        $query = Transaction::withRelations()
+            ->customerFilterable();
+
+        // Helper to check "meaningful" presence (not null and not empty string)
+        $has = function ($key) use ($validated) {
+            return array_key_exists($key, $validated) && $validated[$key] !== null && $validated[$key] !== '';
+        };
+
+        if ($has('status')) {
+            $query->where('status', $validated['status']);
+        }
+
+        if ($has('method')) {
+            $query->where('payment_method', $validated['method']);
+        }
+
+        if ($has('type')) {
+            $query->where('type', $validated['type']);
+        }
+
+        if ($has('dispute_status')) {
+            $query->where('dispute_status', $validated['dispute_status']);
+        }
+
+        if ($has('reviewed')) {
+            if ($validated['reviewed'] === 'yes') {
+                $query->where('reviewed', true);
+            } else { // 'no'
+                $query->where(function ($q) {
+                    $q->where('reviewed', false)->orWhereNull('reviewed');
+                });
+            }
+        }
+
+        if ($has('date_from')) {
+            $query->whereDate('created_at', '>=', $validated['date_from']);
+        }
+
+        if ($has('date_to')) {
+            $query->whereDate('created_at', '<=', $validated['date_to']);
+        }
+
+        if ($has('amount_min')) {
+            // Accept numeric strings or numbers; ignore non-numeric empty values
+            $min = $validated['amount_min'];
+            if ($min !== '') {
+                $query->where('amount', '>=', (float) $min);
+            }
+        }
+
+        if ($has('amount_max')) {
+            $max = $validated['amount_max'];
+            if ($max !== '') {
+                $query->where('amount', '<=', (float) $max);
+            }
+        }
+
+        if ($has('order_uuid')) {
+            $query->where('order_uuid', $validated['order_uuid']);
+        }
+
+        if ($has('search')) {
+            $search = $validated['search'];
+            $query->where(function ($q) use ($search) {
+                $q->where('uuid', 'like', "%{$search}%")
+                    ->orWhere('order_uuid', 'like', "%{$search}%")
+                    ->orWhere('reference', 'like', "%{$search}%")
+                    ->orWhereHas('customer', function ($c) use ($search) {
+                        $c->where('name', 'like', "%{$search}%")
+                            ->orWhere('email', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        // Apply safe sorting
+        $query->orderBy($sortBy, $sortDir);
+
+        $transactions = $query->paginate($perPage)->appends($request->query());
 
         return ['transactions' => $transactions];
     }
+
 
     // -------------------------------------------------------------------------
     // DETAIL
