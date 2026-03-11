@@ -38,7 +38,7 @@ class Transaction extends Model
         'dispute_status',
         'dispute_opened_at',
         'dispute_resolved_at',
-
+        'dispute_reason',
     ];
 
     public function user()
@@ -69,5 +69,10 @@ class Transaction extends Model
     public function reviewed_by()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function refund_requests()
+    {
+        return $this->hasMany(RefundRequest::class, 'transaction_uuid', 'uuid');
     }
 }

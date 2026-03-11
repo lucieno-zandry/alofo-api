@@ -16,10 +16,10 @@ class EnsureUserIsApproved
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user())
+        if (!$request->user()?->roleIsAdmin())
             abort(403);
 
-        if ($request->user()->roleIsAdmin() && !$request->user()->hasBeenApproved()) {
+        if (!$request->user()->hasBeenApproved()) {
             $user_approbation_url = Functions::get_frontend_url('USER_APPROBATION_PATHNAME');
 
             return response()->json([

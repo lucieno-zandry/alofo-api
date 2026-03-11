@@ -10,6 +10,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\RefundRequestController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
@@ -233,15 +234,21 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])->gro
     // ── Standard CRUD ────────────────────────────────────────────────────────
     Route::get('transactions',           [TransactionController::class, 'index']);
     Route::post('transactions',           [TransactionController::class, 'store']);
-    Route::get('transactions/{transaction_uuid}', [TransactionController::class, 'show']);
+    Route::get('transactions/{transaction}', [TransactionController::class, 'show']);
     Route::put('transactions/{transaction}', [TransactionController::class, 'update']);
     Route::delete('transactions',           [TransactionController::class, 'destroy']);
 
-    // ── Export (admin + manager) ─────────────────────────────────────────────
-    Route::get('transactions/export', [TransactionController::class, 'export']);
+    // Dispute lifecycle
+    Route::post(
+        'transactions/{transaction}/dispute',
+        [TransactionController::class, 'openDispute']
+    );
+
+    Route::post('transactions/{transaction}/refund-request', [TransactionController::class, 'requestRefund']);
 
     // ── Admin / finance actions ───────────────────────────────────────────────
     Route::middleware(EnsureUserIsApproved::class)->group(function () {
+        Route::get('transactions/export', [TransactionController::class, 'export']);
 
         // Manual status override (requires reason, fully audited)
         Route::patch(
@@ -267,26 +274,24 @@ Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])->gro
             [TransactionController::class, 'bulkReview']
         );
 
-        // Dispute lifecycle
-        Route::post(
-            'transactions/{transaction}/dispute',
-            [TransactionController::class, 'openDispute']
-        );
         Route::patch(
             'transactions/{transaction}/dispute',
             [TransactionController::class, 'resolveDispute']
         );
-    });
 
-    // ── Audit trail & webhook logs (admin + manager) ─────────────────────────
-    Route::middleware(['role:admin,manager'])->group(function () {
         Route::get(
             'transactions/{transaction}/audit-logs',
             [TransactionController::class, 'auditLogs']
         );
+
         Route::get(
             'transactions/{transaction}/webhook-logs',
             [TransactionController::class, 'webhookLogs']
         );
+
+        Route::get('refund-requests', [RefundRequestController::class, 'index']);
+        Route::post('refund-requests/{refund_request}/approve', [RefundRequestController::class, 'approve']);
+        Route::post('refund-requests/{refund_request}/reject', [RefundRequestController::class, 'reject']);
+        Route::delete('transactions/{transaction}/dispute', [TransactionController::class, 'cancelDispute']);
     });
 });

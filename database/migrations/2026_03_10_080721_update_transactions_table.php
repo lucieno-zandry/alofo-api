@@ -39,6 +39,7 @@ return new class extends Migration
             $table->enum('dispute_status', ['OPEN', 'RESOLVED', 'LOST'])->nullable()->after('notes');
             $table->timestamp('dispute_opened_at')->nullable()->after('dispute_status');
             $table->timestamp('dispute_resolved_at')->nullable()->after('dispute_opened_at');
+            $table->text('dispute_reason')->nullable()->after('dispute_status');
 
             // --- Performance indexes ---
             $table->index('status');

@@ -6,6 +6,7 @@ use App\Enums\TransactionStatus;
 use App\Events\FailedPayment;
 use App\Events\Payment;
 use App\Helpers\Functions;
+use App\Http\Requests\RefundRequestStoreRequest;
 use App\Http\Requests\TransactionCreateRequest;
 use App\Http\Requests\TransactionDeleteRequest;
 use App\Http\Requests\TransactionUpdateRequest;
@@ -17,8 +18,15 @@ use App\Http\Requests\TransactionIndexRequest;
 use App\Models\Transaction;
 use App\Models\TransactionAuditLog;
 use App\Jobs\FailPendingTransaction;
+use App\Models\RefundRequest;
+use App\Models\User;
+use App\Notifications\DisputeCancelled;
+use App\Notifications\DisputeOpened;
+use App\Notifications\DisputeResolved;
 use App\Notifications\PaymentFailed;
 use App\Notifications\PaymentSuccess;
+use App\Notifications\RefundRequested;
+use App\Services\TransactionRefundService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -133,6 +141,7 @@ class TransactionController extends Controller
     public function show(string $transaction_uuid)
     {
         $transaction = Transaction::withRelations()
+            ->customerFilterable()
             ->find($transaction_uuid);
 
         return ['transaction' => $transaction];
@@ -270,30 +279,16 @@ class TransactionController extends Controller
 
     public function refund(TransactionRefundRequest $request, Transaction $transaction)
     {
-        $refund = Transaction::create([
-            'uuid'                     => Str::uuid()->toString(),
-            'user_id'                  => $transaction->user_id,
-            'order_uuid'               => $transaction->order_uuid,
-            'method'                   => $transaction->method,
-            'amount'                   => $request->amount ?? $transaction->amount,
-            'status'                   => TransactionStatus::PENDING->value,
-            'type'                     => 'REFUND',
-            'parent_transaction_uuid'  => $transaction->uuid,
-            'informations'             => ['reason' => $request->reason],
-            'payment_url'              => null,
-        ]);
+        $refund = app(TransactionRefundService::class)->refund(
+            transaction: $transaction,
+            amount: $request->amount ?? $transaction->amount,
+            reason: $request->reason,
+            performedBy: auth()->id()
+        );
 
-        TransactionAuditLog::create([
-            'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
-            'action'           => 'refund_initiated',
-            'old_value'        => null,
-            'new_value'        => $refund->uuid,
-            'reason'           => $request->reason,
-            'metadata'         => ['ip' => request()->ip(), 'refund_amount' => $refund->amount],
-        ]);
-
-        return ['refund_transaction' => $refund];
+        return [
+            'refund_transaction' => $refund
+        ];
     }
 
     // -------------------------------------------------------------------------
@@ -439,14 +434,16 @@ class TransactionController extends Controller
     // -------------------------------------------------------------------------
     // DISPUTE MANAGEMENT
     // -------------------------------------------------------------------------
-
     public function openDispute(Request $request, Transaction $transaction)
     {
+        if (!auth()->user()?->can('openDispute', $transaction)) return abort(403);
+
         $request->validate(['reason' => 'required|string|max:1000']);
 
         $transaction->update([
             'dispute_status'    => 'OPEN',
             'dispute_opened_at' => now(),
+            'dispute_reason'    => $request->reason,
         ]);
 
         TransactionAuditLog::create([
@@ -456,6 +453,12 @@ class TransactionController extends Controller
             'reason'           => $request->reason,
             'metadata'         => ['ip' => request()->ip()],
         ]);
+
+        // Notify admins
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new DisputeOpened($transaction, auth()->user(), $request->reason));
+        }
 
         return ['transaction' => $transaction->fresh()];
     }
@@ -481,6 +484,53 @@ class TransactionController extends Controller
             'reason'           => $request->reason,
             'metadata'         => ['ip' => request()->ip()],
         ]);
+
+        $transaction->user->notify(new DisputeResolved($transaction, $request->outcome, $request->reason));
+
+        return ['transaction' => $transaction->fresh()];
+    }
+
+    public function requestRefund(RefundRequestStoreRequest $request, Transaction $transaction)
+    {
+        $refundRequest = RefundRequest::create([
+            'uuid'              => Str::uuid()->toString(),
+            'user_id'           => auth()->id(),
+            'transaction_uuid'  => $transaction->uuid,
+            'amount'            => $request->amount ?? $transaction->amount,
+            'reason'            => $request->reason,
+            'status'            => 'pending',
+        ]);
+
+        $admins = User::where('role', 'admin')->get(); // adjust role check as needed
+        foreach ($admins as $admin) {
+            $admin->notify(new RefundRequested($refundRequest, $transaction, auth()->user()));
+        }
+
+        return response()->json(['refund_request' => $refundRequest], 201);
+    }
+
+    public function cancelDispute(Request $request, Transaction $transaction)
+    {
+        if (!auth()->user()->can('cancelDispute', $transaction)) return abort(403);
+
+        $transaction->update([
+            'dispute_status'    => null,
+            'dispute_opened_at' => null,
+            'dispute_reason'    => null,
+        ]);
+
+        TransactionAuditLog::create([
+            'transaction_uuid' => $transaction->uuid,
+            'performed_by'     => auth()->id(),
+            'action'           => 'dispute_cancelled',
+            'reason'           => 'Customer cancelled',
+            'metadata'         => ['ip' => request()->ip()],
+        ]);
+
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new DisputeCancelled($transaction, auth()->user()));
+        }
 
         return ['transaction' => $transaction->fresh()];
     }
