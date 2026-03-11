@@ -52,7 +52,7 @@ class PaymentFailed extends Notification implements ShouldQueue
         return [
             "notification_type" => "transaction",
             'type' => 'payment_failed',
-            'transaction_id' => $this->transaction->id,
+            'transaction_uuid' => $this->transaction->uuid,
             'order_uuid' => $this->order->uuid,
             'amount' => $this->transaction->amount,
             'payment_method' => $this->transaction->method,

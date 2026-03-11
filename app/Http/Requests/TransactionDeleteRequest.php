@@ -14,8 +14,8 @@ class TransactionDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'transaction_ids'   => ['required', 'array', 'min:1'],
-            'transaction_ids.*' => ['required', 'numeric', 'exists:transactions,id'],
+            'transaction_uuids'   => ['required', 'array', 'min:1'],
+            'transaction_uuids.*' => ['required', 'numeric', 'exists:transactions,id'],
             // Optional explanation stored in the audit log
             'reason'            => ['nullable', 'string', 'max:1000'],
         ];

@@ -214,11 +214,11 @@ class TransactionController extends Controller
 
     public function destroy(TransactionDeleteRequest $request)
     {
-        $ids     = $request->transaction_ids;
-        $deleted = Transaction::whereIn('id', $ids)->delete();
+        $uuids     = $request->transaction_uuids;
+        $deleted = Transaction::whereIn('id', $uuids)->delete();
 
         // Audit every soft-deleted transaction
-        $transactions = Transaction::withTrashed()->whereIn('id', $ids)->get();
+        $transactions = Transaction::withTrashed()->whereIn('uuid', $uuids)->get();
 
         foreach ($transactions as $t) {
             TransactionAuditLog::create([
