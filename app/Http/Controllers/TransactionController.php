@@ -410,7 +410,7 @@ class TransactionController extends Controller
 
     public function webhookLogs(Request $request, Transaction $transaction)
     {
-        $logs = $transaction->webhookLogs()
+        $logs = $transaction->webhook_logs()
             ->latest()
             ->paginate($request->integer('per_page', 20));
 
@@ -423,8 +423,8 @@ class TransactionController extends Controller
 
     public function auditLogs(Request $request, Transaction $transaction)
     {
-        $logs = $transaction->auditLogs()
-            ->with('performedBy')
+        $logs = $transaction->audit_logs()
+            ->with('performed_by_user')
             ->latest('created_at')
             ->paginate($request->integer('per_page', 20));
 
@@ -496,6 +496,7 @@ class TransactionController extends Controller
             'uuid'              => Str::uuid()->toString(),
             'user_id'           => auth()->id(),
             'transaction_uuid'  => $transaction->uuid,
+            'order_uuid' => $transaction->order_uuid,
             'amount'            => $request->amount ?? $transaction->amount,
             'reason'            => $request->reason,
             'status'            => 'pending',

@@ -20,7 +20,7 @@ class TransactionAuditLog extends Model
         'metadata' => 'array'
     ];
 
-    public function performed_by()
+    public function performed_by_user()
     {
         return $this->belongsTo(User::class, 'performed_by');
     }

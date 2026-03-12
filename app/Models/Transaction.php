@@ -51,6 +51,11 @@ class Transaction extends Model
         return $this->belongsTo(Order::class, 'order_uuid');
     }
 
+    public function webhook_logs()
+    {
+        return $this->hasMany(PaymentWebhookLog::class, 'transaction_uuid');
+    }
+
     public function audit_logs()
     {
         return $this->hasMany(TransactionAuditLog::class, 'transaction_uuid');
@@ -66,7 +71,7 @@ class Transaction extends Model
         return $this->hasMany(Transaction::class, 'parent_transaction_uuid');
     }
 
-    public function reviewed_by()
+    public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
     }
@@ -74,5 +79,10 @@ class Transaction extends Model
     public function refund_requests()
     {
         return $this->hasMany(RefundRequest::class, 'transaction_uuid', 'uuid');
+    }
+
+    public function preformed_by_user()
+    {
+        return $this->belongsTo(User::class, 'performed_by');
     }
 }

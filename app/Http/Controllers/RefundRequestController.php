@@ -15,7 +15,7 @@ class RefundRequestController extends Controller
 {
     public function index(Request $request)
     {
-        $requests = RefundRequest::with(['user', 'transaction'])
+        $requests = RefundRequest::withRelations()
             ->when($request->status, fn($q, $v) => $q->where('status', $v))
             ->latest()
             ->paginate(20);
@@ -31,8 +31,7 @@ class RefundRequestController extends Controller
 
         // Call the existing refund method on the transaction
         $transaction = $refundRequest->transaction;
-        // We need to reuse the refund logic. Instead of duplicating, we can call a service or the existing method.
-        // For simplicity, assume we call a service:
+
         $refundTransaction = app(TransactionRefundService::class)->refund(
             transaction: $transaction,
             amount: $refundRequest->amount,

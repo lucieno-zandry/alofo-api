@@ -16,6 +16,7 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->foreignId('user_id')->constrained();
             $table->uuid('transaction_uuid');
+            $table->uuid('order_uuid');
             $table->decimal('amount', 10, 2); // requested amount (partial allowed)
             $table->text('reason');
             $table->string('status')->default('pending'); // pending, approved, rejected

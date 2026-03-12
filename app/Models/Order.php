@@ -64,4 +64,9 @@ class Order extends Model
     {
         return $this->hasMany(Shipment::class);
     }
+
+    public function refund_requests()
+    {
+        return $this->hasMany(RefundRequest::class, 'order_uuid');
+    }
 }

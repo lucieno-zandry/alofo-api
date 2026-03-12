@@ -26,7 +26,8 @@ class RefundRequest extends Model
         'status',
         'admin_notes',
         'reviewed_by',
-        'reviewed_at'
+        'reviewed_at',
+        'order_uuid',
     ];
 
     protected $casts = [
@@ -46,5 +47,10 @@ class RefundRequest extends Model
     public function reviewer()
     {
         return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class, 'order_uuid');
     }
 }
