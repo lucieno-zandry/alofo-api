@@ -23,6 +23,49 @@ return new class extends Migration {
             $table->string('method');
             $table->text('payment_url')->nullable();
             $table->float('amount')->default(0);
+
+            // Transaction type: PAYMENT (default), REFUND (linked to original), MANUAL (cash/admin-entered)
+            $table->enum('type', ['PAYMENT', 'REFUND', 'MANUAL'])
+                ->default('PAYMENT');
+
+            // Self-referential FK using uuid (your actual PK) — refund transactions point to the original
+            $table->string('parent_transaction_uuid')->nullable();
+            $table->foreign('parent_transaction_uuid')
+                ->references('uuid')
+                ->on('transactions')
+                ->nullOnDelete();
+
+            // Extracted from `informations` JSON for indexed searching (backfill separately)
+            $table->string('payment_reference')->nullable();
+
+            // Admin review tracking (for bulk "mark as reviewed" feature)
+            $table->timestamp('reviewed_at')->nullable();
+            $table->unsignedBigInteger('reviewed_by')->nullable();
+            $table->foreign('reviewed_by')
+                ->references('id')
+                ->on('users')
+                ->nullOnDelete();
+
+            // Optional free-text notes for manual overrides (e.g. "Confirmed via bank transfer")
+            $table->text('notes')->nullable();
+
+            // Dispute tracking
+            $table->enum('dispute_status', ['OPEN', 'RESOLVED', 'LOST'])->nullable();
+            $table->timestamp('dispute_opened_at')->nullable();
+            $table->timestamp('dispute_resolved_at')->nullable();
+            $table->text('dispute_reason')->nullable();
+
+            // --- Performance indexes ---
+            $table->index('status');
+            $table->index('method');
+            $table->index('type');
+            $table->index('payment_reference');
+            $table->index('reviewed_at');
+            $table->index('dispute_status');
+            // Composite indexes for common filter combinations
+            $table->index(['user_id', 'status']);
+            $table->index(['order_uuid', 'status']);
+            $table->index(['status', 'created_at']);
         });
     }
 

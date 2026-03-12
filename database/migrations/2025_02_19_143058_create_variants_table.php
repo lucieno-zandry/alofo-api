@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->foreignIdFor(Product::class)->constrained()->cascadeOnDelete();
             $table->string('sku');
             $table->float('price');
-            $table->float('special_price')->nullable();
             $table->integer('stock');
             $table->foreignId('image_id')->nullable();
             $table->unique(['sku', 'product_id']);

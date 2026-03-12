@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Promotion;
 use App\Models\User;
 use App\Models\Variant;
 use App\Models\Product;
@@ -21,7 +20,6 @@ return new class extends Migration {
             $table->foreignUuid('order_uuid')->nullable();
             $table->foreignIdFor(Variant::class);
             $table->foreignIdFor(Product::class);
-            $table->foreignIdFor(Promotion::class)->nullable();
             $table->float('promotion_discount_applied')->nullable();
             $table->float('total');
             $table->foreignIdFor(User::class);
@@ -29,6 +27,10 @@ return new class extends Migration {
             $table->json("variant_snapshot");
             $table->json("variant_options_snapshot");
             $table->float('unit_price');
+             $table->json('applied_promotions_snapshot')
+                ->nullable()
+                ->comment('Snapshot of promotions that contributed to the final price');
+
         });
     }
 
