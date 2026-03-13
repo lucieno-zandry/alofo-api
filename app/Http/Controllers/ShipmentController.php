@@ -23,7 +23,7 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment = Shipment::create($data);
-        $order_detail_url = Functions::get_frontend_url("ORDER_DETAILS_PATHNAME");
+        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
 
         $shipment->order?->user?->notify(new ShipmentStatusUpdated(
             shipment: $shipment,
@@ -41,7 +41,7 @@ class ShipmentController extends Controller
         $data = $request->validated();
 
         $shipment->update($data);
-        $order_detail_url = Functions::get_frontend_url("ORDER_DETAILS_PATHNAME");
+        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
 
         $shipment->order?->user?->notify(new ShipmentStatusUpdated(
             shipment: $shipment,

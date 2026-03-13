@@ -27,7 +27,7 @@ class RefundApproved extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $orderUrl = Functions::get_frontend_url('ORDER_DETAILS_PATHNAME') . $this->refundTransaction->order_uuid;
+        $orderUrl = Functions::get_frontend_url('CUSTOMER_ORDER_DETAILS_PATHNAME') . $this->refundTransaction->order_uuid;
 
         return (new MailMessage)
             ->subject('Refund Request Approved')

@@ -144,8 +144,8 @@ class Functions
 
     public static function get_order_detail_page_url(string $order_uuid): string
     {
-        $frontend_url = self::get_frontend_url();
-        $redirect_url = "$frontend_url/order/$order_uuid";
+        $frontend_url = self::get_frontend_url('CUSTOMER_ORDER_DETAILS_PATHNAME');
+        $redirect_url = $frontend_url . $order_uuid;
 
         return $redirect_url;
     }
