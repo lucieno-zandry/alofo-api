@@ -53,7 +53,7 @@ Route::prefix('category')
         Route::get('all', 'index');
         Route::get('get/{id}', 'show');
 
-        Route::middleware(EnsureUserIsApproved::class)->group(function () {
+        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
             Route::post('create', 'store');
             Route::post('update/{category}', 'update');
             Route::delete('delete', 'destroy');
@@ -82,7 +82,7 @@ Route::prefix('variant')
         Route::get('get/{id}', 'show');
         Route::get('all', 'index');
 
-        Route::middleware(EnsureUserIsApproved::class)->group(function () {
+        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
             Route::post('create', 'store');
             Route::put('update/{variant}', 'update');
             Route::delete('delete', 'destroy');
@@ -95,7 +95,7 @@ Route::prefix('variant-group')
         Route::get('all', 'index');
         Route::get('get/{variant_group_id}', 'show');
 
-        Route::middleware(EnsureUserIsApproved::class)->group(function () {
+        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
             Route::post('create', 'store');
             Route::put('update/{variant_group}', 'update');
             Route::delete('delete', 'destroy');
