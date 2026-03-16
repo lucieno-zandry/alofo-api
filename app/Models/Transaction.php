@@ -39,6 +39,11 @@ class Transaction extends Model
         'dispute_opened_at',
         'dispute_resolved_at',
         'dispute_reason',
+        'type'
+    ];
+
+    protected $casts = [
+        'informations' => 'array',
     ];
 
     public function user()

@@ -67,7 +67,7 @@ Route::prefix('product')
         Route::get('get/{slug}', 'show');
         Route::get('price-range', 'price_range');
 
-        Route::middleware(EnsureUserIsApproved::class)->group(function () {
+        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
             Route::post('full-create', 'product_full_create');
             Route::post('create', 'store');
             Route::post('update/{product}', 'update');
@@ -239,7 +239,7 @@ Route::prefix('transactions')
         Route::delete('',           'destroy');
 
         Route::post('{transaction}/dispute', 'openDispute');
-
+        Route::delete('{transaction}/dispute', 'cancelDispute');
         Route::post('{transaction}/refund-request', 'requestRefund');
 
         // ── Admin / finance actions ───────────────────────────────────────────────
@@ -260,7 +260,6 @@ Route::prefix('transactions')
             Route::patch('{transaction}/dispute', 'resolveDispute');
             Route::get('{transaction}/audit-logs', 'auditLogs');
             Route::get('{transaction}/webhook-logs', 'webhookLogs');
-            Route::delete('{transaction}/dispute', 'cancelDispute');
         });
     });
 
