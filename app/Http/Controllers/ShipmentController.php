@@ -56,7 +56,7 @@ class ShipmentController extends Controller
 
     public function destroy(ShipmentDeleteRequest $request)
     {
-        $shipment_ids = implode(',', $request->shipment_ids);
+        $shipment_ids = explode(',', $request->shipment_ids);
 
         $deleted = Shipment::whereIn('id', $shipment_ids)->delete();
 
@@ -74,26 +74,67 @@ class ShipmentController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $shipments = Shipment::applyFilters()->get();
+        // Base query with default scopes
+        $query = Shipment::withRelations()->customerFilterable();
 
-        return [
-            'shipments' => $shipments
-        ];
+        // Apply filters
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $query->where('status', $request->input('status'));
+        }
+
+        // Search across multiple fields
+        if ($request->filled('search')) {
+            $searchTerm = '%' . $request->input('search') . '%';
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('tracking_number', 'like', $searchTerm)
+                    ->orWhereHas('order', function ($orderQuery) use ($searchTerm) {
+                        $orderQuery->where('uuid', 'like', $searchTerm);
+                    })
+                    // Add more fields as needed (e.g., carrier)
+                    ->orWhere('data->carrier', 'like', $searchTerm);
+            });
+        }
+
+        // Date range filters (assuming created_at is the date field; adjust if needed)
+        if ($request->filled('from_date')) {
+            $query->whereDate('created_at', '>=', $request->input('from_date'));
+        }
+        if ($request->filled('to_date')) {
+            $query->whereDate('created_at', '<=', $request->input('to_date'));
+        }
+
+        // Sorting
+        $sortBy = $request->input('sort_by', 'id'); // default to 'id'
+        $sortOrder = $request->input('sort_order', 'desc'); // default to 'desc' (newest first)
+        // Ensure the sort column is valid to avoid SQL injection
+        $allowedSortColumns = ['id', 'status', 'created_at', 'updated_at']; // add more as needed
+        if (in_array($sortBy, $allowedSortColumns)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            // Fallback to default sorting
+            $query->orderBy('id', 'desc');
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 15); // default 15 per page
+        $shipments = $query->paginate($perPage);
+
+        // Return as JSON (Laravel's paginator already includes meta in the response structure)
+        return response()->json($shipments);
     }
 
     public function bulkUpdateShipment(BulkUpdateShipmentRequest $request)
     {
         $validated = $request->validated();
         $orderUuids = $validated['order_uuids'];
-        $newStatus = ShipmentStatus::from($validated['status']); // enum
-        $extraData = $validated['data'] ?? []; // optional: carrier, tracking_number, etc.
+        $newStatus = ShipmentStatus::from($validated['status']);
+        $extraData = $validated['data'] ?? [];
 
         $updated = 0;
         $errors = [];
 
-        /** @var Collection */
         $orders = Order::with('user')->whereIn('uuid', $orderUuids)->get();
 
         DB::beginTransaction();
@@ -102,25 +143,19 @@ class ShipmentController extends Controller
             foreach ($orders as $order) {
                 $uuid = $order->uuid;
 
-                /** @var ?Shipment */
-                $shipment = null;
-
-                if (!$order) {
-                    $errors[] = "Order {$uuid} not found.";
-                    continue;
-                }
-
-                // Get latest shipment
+                // Get the latest shipment (by id) – we'll use this for comparison
                 $latestShipment = $order->shipments()->latest('id')->first();
 
-                // If no shipment exists, create the first one (should be PROCESSING by default)
+                // If no shipment exists, create the first one as active
                 if (!$latestShipment) {
                     $shipment = $order->shipments()->create([
-                        'status' => $newStatus->value,
-                        'data'   => $extraData,
+                        'status'    => $newStatus->value,
+                        'data'      => $extraData,
+                        'is_active' => true, // first and only
                     ]);
 
                     $updated++;
+                    $this->notifyUser($order, $shipment);
                     continue;
                 }
 
@@ -133,25 +168,26 @@ class ShipmentController extends Controller
                 }
 
                 if ($currentStatus === $newStatus) {
+                    // Same status: just update the data of the latest shipment
                     $latestShipment->update([
                         'data' => array_merge($latestShipment->data ?? [], $extraData),
                     ]);
 
-                    $shipment = $latestShipment; // still the model
+                    $shipment = $latestShipment;
                 } else {
-                    // Forward transition: create new shipment record
+                    // Status changed: create a new shipment as the active one
+                    // First, deactivate all existing shipments for this order
+                    $order->shipments()->update(['is_active' => false]);
+
+                    // Create the new active shipment
                     $shipment = $order->shipments()->create([
-                        'status' => $newStatus->value,
-                        'data'   => $extraData,
+                        'status'    => $newStatus->value,
+                        'data'      => $extraData,
+                        'is_active' => true,
                     ]);
                 }
 
-                $order->user?->notify(new ShipmentStatusUpdated(
-                    shipment: $shipment,
-                    order: $order,
-                    order_detail_url: Functions::get_order_detail_page_url($uuid),
-                ));
-
+                $this->notifyUser($order, $shipment);
                 $updated++;
             }
 
@@ -175,6 +211,16 @@ class ShipmentController extends Controller
                 'message' => 'Failed to update shipments. Please try again.',
             ], 500);
         }
+    }
+
+    // Helper to send notification (extracted for clarity)
+    private function notifyUser(Order $order, Shipment $shipment): void
+    {
+        $order->user?->notify(new ShipmentStatusUpdated(
+            shipment: $shipment,
+            order: $order,
+            order_detail_url: Functions::get_order_detail_page_url($order->uuid),
+        ));
     }
 
     /**
