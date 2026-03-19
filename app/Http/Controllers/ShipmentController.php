@@ -86,14 +86,14 @@ class ShipmentController extends Controller
 
         // Search across multiple fields
         if ($request->filled('search')) {
-            $searchTerm = '%' . $request->input('search') . '%';
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('tracking_number', 'like', $searchTerm)
-                    ->orWhereHas('order', function ($orderQuery) use ($searchTerm) {
-                        $orderQuery->where('uuid', 'like', $searchTerm);
+            $lowerSearchTerm = '%' . mb_strtolower($request->input('search')) . '%';
+
+            $query->where(function ($q) use ($lowerSearchTerm) {
+                $q->whereRaw('LOWER(data->>"$.tracking_number") LIKE ?', [$lowerSearchTerm])
+                    ->orWhereHas('order', function ($orderQuery) use ($lowerSearchTerm) {
+                        $orderQuery->whereRaw('LOWER(uuid) LIKE ?', [$lowerSearchTerm]);
                     })
-                    // Add more fields as needed (e.g., carrier)
-                    ->orWhere('data->carrier', 'like', $searchTerm);
+                    ->orWhereRaw('LOWER(data->>"$.carrier") LIKE ?', [$lowerSearchTerm]);
             });
         }
 

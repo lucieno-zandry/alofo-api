@@ -13,8 +13,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 
-use function Illuminate\Log\log;
-
 class Variant extends Model
 {
     use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
@@ -80,8 +78,6 @@ class Variant extends Model
     public function getEffectivePrice(?User $user = null): float
     {
         $user = $user ?? auth()->user();
-        log("user : ");
-        log($user);
         $basePrice = $this->price;
 
         // Load promotions if not already loaded
