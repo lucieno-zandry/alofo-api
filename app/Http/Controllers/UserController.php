@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserStatusUpdatedEvent;
 use App\Helpers\Functions;
+use App\Http\Requests\UserStatusStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
 use App\Models\ClientCode;
 use App\Models\User;
+use App\Models\UserStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -91,5 +94,18 @@ class UserController extends Controller
         $users = $query->paginate($perPage);
 
         return response()->json($users);
+    }
+
+    public function storeStatus(UserStatusStoreRequest $request, User $user)
+    {
+        $data = $request->validated();
+
+        $status = UserStatus::create($data);
+
+        UserStatusUpdatedEvent::dispatch($user, $status);
+
+        return [
+            'user' => $user->fresh()
+        ];
     }
 }

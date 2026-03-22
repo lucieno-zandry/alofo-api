@@ -1,8 +1,6 @@
 <?php
 
 use App\Enums\UserRole;
-use App\Models\Address;
-use App\Models\ClientCode;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -18,12 +16,32 @@ return new class extends Migration {
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
-            $table->timestamp('approved_at')->nullable();
             $table->string('password')->nullable();
             $table->enum('role', UserRole::toArray())->default(UserRole::CLIENT->value);
             $table->foreignId('avatar_image_id')->nullable();
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
+        });
+
+        Schema::create('user_statuses', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
+            $table->string('status'); // e.g., 'approved', 'blocked', 'suspended'
+            $table->text('reason')->nullable();
+            $table->foreignId('set_by')
+                ->nullable()
+                ->constrained('users')
+                ->onDelete('set null');
+            $table->timestamp('expires_at')->nullable();
+            $table->timestamps();
+
+            // Indexes for performance
+            $table->index('user_id');
+            $table->index('status');
+            $table->index('expires_at');
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
@@ -48,6 +66,7 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('users');
+        Schema::dropIfExists('user_statuses');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }

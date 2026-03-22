@@ -29,7 +29,7 @@ class RefundRequested extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $url = Functions::get_frontend_url('REFUND_REQUESTS') . $this->refundRequest->uuid;
+        $url = Functions::get_frontend_url('REFUND_REQUESTS', 'ADMIN') . $this->refundRequest->uuid;
 
         return (new MailMessage)
             ->subject('New Refund Request #' . $this->refundRequest->uuid)

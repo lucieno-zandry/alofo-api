@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Events\FailedPayment;
 use App\Events\Payment;
+use App\Events\UserStatusUpdatedEvent;
 use App\Listeners\NotifyBuyerTransactionFailed;
 use App\Listeners\NotifyBuyerTransactionSuccess;
+use App\Listeners\SendUserStatusNotification;
 use App\Listeners\UseCoupon;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -23,7 +25,10 @@ class EventServiceProvider extends ServiceProvider
         ],
         FailedPayment::class => [
             NotifyBuyerTransactionFailed::class,
-        ]
+        ],
+        UserStatusUpdatedEvent::class => [
+            SendUserStatusNotification::class,
+        ],
     ];
 
     /**

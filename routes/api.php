@@ -18,9 +18,11 @@ use App\Http\Controllers\VariantController;
 use App\Http\Controllers\VariantGroupController;
 use App\Http\Controllers\VariantOptionController;
 use App\Http\Middleware\CustomSanctumAuth;
-use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureUserIsApproved;
 use Illuminate\Support\Facades\Route;
+
+
+// Public auth endpoints (no authentication needed)
 
 Route::prefix('auth')
     ->controller(AuthController::class)
@@ -46,6 +48,7 @@ Route::prefix('auth')
             });
     });
 
+// Categories – read public, write requires full auth + approval
 Route::prefix('category')
     ->controller(CategoryController::class)
     ->group(function () {
@@ -53,13 +56,14 @@ Route::prefix('category')
         Route::get('all', 'index');
         Route::get('get/{id}', 'show');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::post('create', 'store');
             Route::post('update/{category}', 'update');
             Route::delete('delete', 'destroy');
         });
     });
 
+// Products – read public, write requires full auth + approval
 Route::prefix('product')
     ->controller(ProductController::class)
     ->group(function () {
@@ -67,7 +71,7 @@ Route::prefix('product')
         Route::get('get/{slug}', 'show');
         Route::get('price-range', 'price_range');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::post('full-create', 'product_full_create');
             Route::post('create', 'store');
             Route::post('update/{product}', 'update');
@@ -76,58 +80,69 @@ Route::prefix('product')
         });
     });
 
+// Variants – read public, write requires full auth + approval
 Route::prefix('variant')
     ->controller(VariantController::class)
     ->group(function () {
         Route::get('get/{id}', 'show');
         Route::get('all', 'index');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::post('create', 'store');
             Route::put('update/{variant}', 'update');
             Route::delete('delete', 'destroy');
         });
     });
 
+// Variant groups – read public, write requires full auth + approval
 Route::prefix('variant-group')
     ->controller(VariantGroupController::class)
     ->group(function () {
         Route::get('all', 'index');
         Route::get('get/{variant_group_id}', 'show');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::post('create', 'store');
             Route::put('update/{variant_group}', 'update');
             Route::delete('delete', 'destroy');
         });
     });
 
+// Variant options – read public, write requires full auth + approval
 Route::prefix('variant-option')
     ->controller(VariantOptionController::class)
     ->group(function () {
         Route::get('all', 'index');
         Route::get('get/{variant_option_id}', 'show');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::post('create', 'store');
             Route::put('update/{variant_option}', 'update');
             Route::delete('delete', 'destroy');
         });
     });
 
+// Coupons – read public, write requires full auth + approval
 Route::prefix('coupon')
     ->controller(CouponController::class)
     ->group(function () {
-        Route::get('get/{coupon_id}', 'show');
+        Route::get('get/{code}', 'show');
         Route::get('all', 'index');
+
+        Route::middleware('api.auth.approved')->group(function () {
+            Route::post('create', 'store');
+            Route::put('update/{coupon}', 'update');
+            Route::delete('delete', 'destroy');
+        });
     });
 
+// Client codes – read public, write requires auth (but not approval? actually approval is needed)
 Route::prefix('client-code')
     ->controller(ClientCodeController::class)
     ->group(function () {
         Route::get('get/{code}', 'show');
 
-        Route::middleware([CustomSanctumAuth::class, EnsureUserIsApproved::class])->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
             Route::get('all', 'index');
             Route::post('create', 'store');
             Route::put('update/{client_code}', 'update');
@@ -135,8 +150,9 @@ Route::prefix('client-code')
         });
     });
 
+// Promotions – all actions require full auth + approval
 Route::prefix('promotion')
-    ->middleware([EnsureUserIsApproved::class, CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth.approved')
     ->controller(PromotionController::class)
     ->group(function () {
         Route::get('all', 'index');
@@ -146,17 +162,20 @@ Route::prefix('promotion')
         Route::get('get/{promotion_id}', 'show');
     });
 
+// User management – all actions require full auth + approval
 Route::prefix('user')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])
+    ->middleware('api.auth.approved')
     ->controller(UserController::class)
     ->group(function () {
         Route::post('update/{user}', 'update');
         Route::get('get/{user_id}', 'show');
         Route::get('all', 'index');
+        Route::post('{user}/status', 'storeStatus');
     });
 
+// Address – requires authentication (email verified), but not approval (customers can manage addresses)
 Route::prefix('address')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(AddressController::class)
     ->group(function () {
         Route::post('create', 'store');
@@ -165,8 +184,9 @@ Route::prefix('address')
         Route::delete('delete', 'destroy');
     });
 
+// Cart – requires authentication (email verified), but not approval
 Route::prefix('cart')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(CartItemController::class)
     ->name('cart.')
     ->group(function () {
@@ -177,8 +197,9 @@ Route::prefix('cart')
         Route::delete('delete', 'destroy');
     });
 
+// Orders – requires authentication (email verified), but not approval (customers can place orders)
 Route::prefix('order')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(OrderController::class)
     ->group(function () {
         Route::get('get/{order_uuid}', 'show');
@@ -188,8 +209,9 @@ Route::prefix('order')
         Route::post('create-from-variant', 'create_from_variant');
     });
 
+// Shipments – requires authentication (email verified); write actions (create, update, delete) also require approval
 Route::prefix('shipment')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(ShipmentController::class)
     ->group(function () {
         Route::get('get/{shipment_id}', 'show');
@@ -203,8 +225,9 @@ Route::prefix('shipment')
         });
     });
 
+// Notifications – requires authentication (email verified), not approval
 Route::prefix('notifications')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(NotificationController::class)
     ->group(function () {
         Route::get('', 'index');
@@ -215,21 +238,9 @@ Route::prefix('notifications')
         Route::delete('clear-read', 'clearRead');
     });
 
-Route::prefix('coupon')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
-    ->controller(CouponController::class)
-    ->group(function () {
-        Route::get('get/{code}', 'show');
-
-        Route::middleware(EnsureUserIsApproved::class)->group(function () {
-            Route::post('create', 'store');
-            Route::put('update/{coupon}', 'update');
-            Route::delete('delete', 'destroy');
-        });
-    });
-
+// Transactions – base auth for all; admin actions require approval
 Route::prefix('transactions')
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class])
+    ->middleware('api.auth')
     ->controller(TransactionController::class)
     ->group(function () {
         Route::get('',           'index');
@@ -242,20 +253,12 @@ Route::prefix('transactions')
         Route::delete('{transaction}/dispute', 'cancelDispute');
         Route::post('{transaction}/refund-request', 'requestRefund');
 
-        // ── Admin / finance actions ───────────────────────────────────────────────
+        // Admin/finance actions – require approval
         Route::middleware(EnsureUserIsApproved::class)->group(function () {
             Route::get('export', 'export');
-
-            // Manual status override (requires reason, fully audited)
             Route::patch('{transaction}/override-status', 'overrideStatus');
-
-            // Initiate a refund (partial or full) — creates a new REFUND transaction
             Route::post('{transaction}/refund', 'refund');
-
-            // Resend payment success/failure notification to the customer
             Route::post('{transaction}/resend-notification', 'resendNotification');
-
-            // Bulk-mark transactions as reviewed
             Route::post('bulk-review', 'bulkReview');
             Route::patch('{transaction}/dispute', 'resolveDispute');
             Route::get('{transaction}/audit-logs', 'auditLogs');
@@ -263,10 +266,10 @@ Route::prefix('transactions')
         });
     });
 
-
+// Refund requests – require full auth + approval (admin only)
 Route::prefix('refund-requests')
+    ->middleware('api.auth.approved')
     ->controller(RefundRequestController::class)
-    ->middleware([CustomSanctumAuth::class, EnsureEmailIsVerified::class, EnsureUserIsApproved::class])
     ->group(function () {
         Route::get('', 'index');
         Route::post('{refund_request}/approve', 'approve');

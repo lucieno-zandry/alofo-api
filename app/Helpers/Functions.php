@@ -128,9 +128,11 @@ class Functions
         return $lang;
     }
 
-    public static function get_frontend_url(?string $env_pathname = null)
+    public static function get_frontend_url(?string $env_pathname = null, string $user_role = 'CLIENT')
     {
-        $frontend_url = request()->get('origin', env('FRONTEND_URL'));
+        $env_fe_url = $user_role === 'CLIENT' ? env('FRONT_OFFICE_FE_URL') : env('BACKOFFICE_FE_URL');
+
+        $frontend_url = request()->get('origin', $env_fe_url);
         $lang = self::get_lang();
         $url = "$frontend_url/$lang";
 

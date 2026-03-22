@@ -28,7 +28,7 @@ class DisputeOpened extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $url = Functions::get_frontend_url('TRANSACTION_DETAILS') . $this->transaction->uuid;
+        $url = Functions::get_frontend_url('TRANSACTION_DETAILS', 'ADMIN') . $this->transaction->uuid;
 
         return (new MailMessage)
             ->subject('New Dispute Opened')

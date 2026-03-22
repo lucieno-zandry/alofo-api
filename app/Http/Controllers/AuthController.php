@@ -111,7 +111,7 @@ class AuthController extends Controller
             'token' => $token,
         ]);
 
-        $reset_url = Functions::get_frontend_url('PASSWORD_RESET_PATHNAME') . $token;
+        $reset_url = Functions::get_frontend_url('PASSWORD_RESET_PATHNAME', $user->role) . $token;
 
         $link_sent = Mail::to($user)
             ->send(new ResetMail($reset_url));

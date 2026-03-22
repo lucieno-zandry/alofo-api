@@ -20,7 +20,7 @@ class EnsureUserIsApproved
             abort(403);
 
         if (!$request->user()->hasBeenApproved()) {
-            $user_approbation_url = Functions::get_frontend_url('USER_APPROBATION_PATHNAME');
+            $user_approbation_url = Functions::get_frontend_url('USER_APPROBATION_PATHNAME', $request->user()->role);
 
             return response()->json([
                 'message' => 'Account still not approved',

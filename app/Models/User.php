@@ -8,9 +8,9 @@ use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use Illuminate\Auth\Passwords\CanResetPassword;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -18,7 +18,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, CanResetPassword, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, CanResetPassword, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
 
     /**
      * The attributes that are mass assignable.
@@ -32,7 +32,6 @@ class User extends Authenticatable
         'role',
         'client_code_id',
         'avatar_image_id',
-        'approved_at'
     ];
 
     /**
@@ -45,6 +44,10 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $appends = [
+        'status'
+    ];
+
     /**
      * Get the attributes that should be cast.
      *
@@ -53,14 +56,13 @@ class User extends Authenticatable
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
     }
 
-    public function hasBeenApproved()
+    public function hasBeenApproved(): bool
     {
-        return !!$this->approved_at;
+        return $this->current_status?->status === 'approved';
     }
 
     public function canUseSpecialPrices()
@@ -151,6 +153,16 @@ class User extends Authenticatable
         return $this->hasMany(Transaction::class, 'reviewed_by');
     }
 
+    public function blocked_by_user()
+    {
+        return $this->belongsTo(User::class, 'blocked_by_id');
+    }
+
+    public function blocked_users()
+    {
+        return $this->hasMany(User::class, 'blocked_by_id');
+    }
+
     public function scopeWithRelations(Builder $query)
     {
         $request = request();
@@ -184,5 +196,20 @@ class User extends Authenticatable
         }
 
         return $query;
+    }
+
+    public function statuses()
+    {
+        return $this->hasMany(UserStatus::class, 'user_id');
+    }
+
+    public function currentStatus(): ?UserStatus
+    {
+        return $this->statuses()->latest()->first();
+    }
+
+    public function getStatusAttribute()
+    {
+        return $this->currentStatus();
     }
 }

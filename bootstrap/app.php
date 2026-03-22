@@ -15,6 +15,28 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append([HandleCors::class]);
+        $middleware->alias([
+            'custom.sanctum' => \App\Http\Middleware\CustomSanctumAuth::class,
+            'verified'       => \App\Http\Middleware\EnsureEmailIsVerified::class,
+            'approved'       => \App\Http\Middleware\EnsureUserIsApproved::class,
+            'not-blocked'    => \App\Http\Middleware\EnsureUserIsNotBlocked::class,
+            'not-suspended'  => \App\Http\Middleware\EnsureUserIsNotSuspended::class,
+        ]);
+
+        $middleware->group('api.auth', [
+            'custom.sanctum',
+            'verified',
+            'not-blocked',
+            'not-suspended',
+        ]);
+
+        $middleware->group('api.auth.approved', [
+            'custom.sanctum',
+            'verified',
+            'approved',
+            'not-blocked',
+            'not-suspended',
+        ]);
     })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(SetLocale::class);
