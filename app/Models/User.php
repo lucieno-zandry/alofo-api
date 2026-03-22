@@ -153,16 +153,6 @@ class User extends Authenticatable
         return $this->hasMany(Transaction::class, 'reviewed_by');
     }
 
-    public function blocked_by_user()
-    {
-        return $this->belongsTo(User::class, 'blocked_by_id');
-    }
-
-    public function blocked_users()
-    {
-        return $this->hasMany(User::class, 'blocked_by_id');
-    }
-
     public function scopeWithRelations(Builder $query)
     {
         $request = request();
@@ -183,6 +173,8 @@ class User extends Authenticatable
                 'reviewed_refund_requests',
                 'performed_transaction_audit_logs',
                 'reviewed_transactions',
+                'statuses.set_by_user',
+                'set_statuses.user'
             ];
 
             $relations = array_intersect($relations, $validRelations);
@@ -211,5 +203,10 @@ class User extends Authenticatable
     public function getStatusAttribute()
     {
         return $this->currentStatus();
+    }
+
+    public function set_statuses()
+    {
+        return $this->hasMany(UserStatus::class, 'set_by');
     }
 }

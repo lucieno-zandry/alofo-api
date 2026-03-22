@@ -13,7 +13,7 @@ class SendUserStatusNotification implements ShouldQueue
         $user = $event->user;
         $status = $event->userStatus;
 
-        $message = "Your account status has been updated to: {$status->status}.";
+        $message = "Your account status has been {$status->status}.";
 
         $notification = new UserStatusChangedNotification(
             $status->status,
