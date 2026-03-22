@@ -14,9 +14,6 @@ class SendUserStatusNotification implements ShouldQueue
         $status = $event->userStatus;
 
         $message = "Your account status has been updated to: {$status->status}.";
-        if ($status->reason) {
-            $message .= " Reason: {$status->reason}.";
-        }
 
         $notification = new UserStatusChangedNotification(
             $status->status,

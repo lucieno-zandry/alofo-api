@@ -14,7 +14,7 @@ class UserPolicy
         //
     }
 
-    public function canUpdateStatus(User $auth, User $user): bool
+    public function updateStatus(User $auth, User $user): bool
     {
         return $auth->roleIsAdmin();
     }

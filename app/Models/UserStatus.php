@@ -14,15 +14,13 @@ class UserStatus extends Model
 {
   use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
 
-  protected $fillable = [];
-
-  public string $status;
-  public int $user_id;
-  public ?string $reason;
-  public ?int $set_by;
-  public DateTime $created_at;
-  public DateTime $updated_at;
-  public DateTime $expires_at;
+  protected $fillable = [
+    'user_id',
+    'reason',
+    'set_by',
+    'status',
+    'expires_at',
+  ];
 
   public function user()
   {

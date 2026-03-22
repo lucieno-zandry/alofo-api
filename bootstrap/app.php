@@ -33,9 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->group('api.auth.approved', [
             'custom.sanctum',
             'verified',
-            'approved',
             'not-blocked',
             'not-suspended',
+            'approved',
         ]);
     })
     ->withMiddleware(function (Middleware $middleware) {

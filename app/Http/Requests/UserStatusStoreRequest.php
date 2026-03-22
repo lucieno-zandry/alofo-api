@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 
 class UserStatusStoreRequest extends FormRequest
 {
@@ -11,6 +12,7 @@ class UserStatusStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
+        Log::debug($this->route('user'));
         return $this->user()->can('updateStatus', $this->route('user'));
     }
 
@@ -23,7 +25,7 @@ class UserStatusStoreRequest extends FormRequest
     {
         return [
             'user_id' => 'required|exists:users,id',
-            'status' => 'required|in_array:approved,blocked,suspended',
+            'status' => 'required|in:approved,blocked,suspended',
             'reason' => 'nullable',
             'set_by' => 'required',
             'expires_at' => 'nullable|date',

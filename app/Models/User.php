@@ -62,7 +62,7 @@ class User extends Authenticatable
 
     public function hasBeenApproved(): bool
     {
-        return $this->current_status?->status === 'approved';
+        return $this->status?->status === 'approved';
     }
 
     public function canUseSpecialPrices()
