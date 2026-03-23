@@ -18,4 +18,9 @@ class UserPolicy
     {
         return $auth->roleIsAdmin();
     }
+
+    public function update(User $auth, User $user): bool
+    {
+        return $auth->roleIsAdmin();
+    }
 }

@@ -15,7 +15,7 @@ class UserUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('update', $this->route('user'));
     }
 
     /**
@@ -26,7 +26,7 @@ class UserUpdateRequest extends FormRequest
     public function rules(): array
     {
         $rules = [
-            'email' => ['email', 'unique:users'],
+            'email' => ['email', Rule::unique('users')->ignore($this->user?->id)],
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
             'role' => [Rule::enum(UserRole::class)],
