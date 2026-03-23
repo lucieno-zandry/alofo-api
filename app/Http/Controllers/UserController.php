@@ -6,13 +6,11 @@ use App\Events\UserStatusUpdatedEvent;
 use App\Helpers\Functions;
 use App\Http\Requests\UserStatusStoreRequest;
 use App\Http\Requests\UserUpdateRequest;
-use App\Models\ClientCode;
 use App\Models\User;
 use App\Models\UserStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
 {
@@ -34,6 +32,9 @@ class UserController extends Controller
 
             $data['avatar_image_id'] = $image->id;
         }
+
+        if ($request->has('email') && $request->email !== $user->email)
+            $user->email_verified_at = null;
 
         $user->update($data);
 

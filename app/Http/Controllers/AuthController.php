@@ -180,7 +180,7 @@ class AuthController extends Controller
         }
 
         // Make the user verify it's email again if changed
-        if ($request->has('email'))
+        if ($request->has('email') && $request->email !== $user->email)
             $user->email_verified_at = null;
 
         // Increment client code uses if applicable
