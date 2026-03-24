@@ -6,7 +6,10 @@ use App\Helpers\Functions;
 use App\Http\Requests\PromotionCreateRequest;
 use App\Http\Requests\PromotionDeleteRequest;
 use App\Http\Requests\PromotionUpdateRequest;
+use App\Http\Requests\PromotionVariantAttachRequest;
+use App\Http\Requests\PromotionVariantDetachRequest;
 use App\Models\Promotion;
+use App\Models\Variant;
 use Illuminate\Http\Request;
 
 class PromotionController extends Controller
@@ -42,7 +45,7 @@ class PromotionController extends Controller
 
     public function destroy(PromotionDeleteRequest $request)
     {
-        $promotion_ids = implode(',', $request->promotion_ids);
+        $promotion_ids = explode(',', $request->promotion_ids);
         $deleted = Promotion::whereIn('id', $promotion_ids)->delete();
 
         return [
@@ -50,13 +53,12 @@ class PromotionController extends Controller
         ];
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $promotions = Promotion::applyFilters()->active()->get();
+        $per_page = $request->get('per_page', 15);
+        $promotions = Promotion::paginate($per_page);
 
-        return [
-            'promotions' => $promotions
-        ];
+        return response()->json($promotions);
     }
 
     public function show(int $promotion_id)
@@ -65,6 +67,24 @@ class PromotionController extends Controller
 
         return [
             'promotion' => $promotion
+        ];
+    }
+
+    public function attachVariant(PromotionVariantAttachRequest $request, Promotion $promotion)
+    {
+        $promotion->variants()->attach($request->variant_id);
+
+        return [
+            'message' => 'Variant attached successfully'
+        ];
+    }
+
+    public function detachVariant(PromotionVariantDetachRequest $request, Promotion $promotion)
+    {
+        $promotion->variants()->detach($request->variant_id);
+
+        return [
+            'message' => 'Variant detached successfully'
         ];
     }
 }

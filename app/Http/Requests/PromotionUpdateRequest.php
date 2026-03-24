@@ -13,7 +13,7 @@ class PromotionUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('update', $this->route('promotion'));
     }
 
     /**

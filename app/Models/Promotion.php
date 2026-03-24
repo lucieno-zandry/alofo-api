@@ -7,7 +7,7 @@ use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class Promotion extends Model
@@ -46,5 +46,4 @@ class Promotion extends Model
     {
         return $this->belongsToMany(Variant::class);
     }
-
 }

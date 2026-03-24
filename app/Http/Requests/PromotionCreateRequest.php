@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\DiscountType;
+use App\Models\Promotion;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +14,7 @@ class PromotionCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('create', Promotion::class);
     }
 
     /**

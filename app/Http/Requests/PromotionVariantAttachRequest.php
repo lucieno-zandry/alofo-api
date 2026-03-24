@@ -5,14 +5,14 @@ namespace App\Http\Requests;
 use App\Models\Promotion;
 use Illuminate\Foundation\Http\FormRequest;
 
-class PromotionDeleteRequest extends FormRequest
+class PromotionVariantAttachRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->can('destroy', Promotion::class);
+        return $this->user()->can('attachVariant', Promotion::class);
     }
 
     /**
@@ -23,7 +23,7 @@ class PromotionDeleteRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'promotion_ids' => ['required', 'regex:/^[\d]+([,\d])*$/']
+            'variant_id' => 'required|exists:variants,id'
         ];
     }
 }

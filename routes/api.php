@@ -162,7 +162,9 @@ Route::prefix('promotion')
         Route::post('create', 'store');
         Route::put('update/{promotion}', 'update');
         Route::delete('delete', 'destroy');
-        Route::get('get/{promotion_id}', 'show');
+        Route::get('get/{promotion}', 'show');
+        Route::put('{promotion}/attach-variant', 'attachVariant');
+        Route::put('{promotion}/detach-variant', 'detachVariant');
     });
 
 // User management – all actions require full auth + approval
