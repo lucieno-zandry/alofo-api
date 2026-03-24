@@ -143,9 +143,11 @@ Route::prefix('client-code')
         Route::get('get/{code}', 'show');
 
         Route::middleware('api.auth.approved')->group(function () {
+            Route::get('get-by-id/{client_code}', 'showById');
             Route::get('all', 'index');
             Route::post('create', 'store');
             Route::put('update/{client_code}', 'update');
+            Route::post('{client_code}/detach-user', 'detachUser');
             Route::delete('delete', 'destroy');
         });
     });

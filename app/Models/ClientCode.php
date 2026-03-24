@@ -14,11 +14,6 @@ class ClientCode extends Model
 {
     use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
 
-    public function user()
-    {
-        return $this->hasMany(User::class);
-    }
-
     protected $fillable = [
         'code',
         'user_id',
@@ -41,5 +36,10 @@ class ClientCode extends Model
     {
         $this->uses = $this->uses + 1;
         $this->save();
+    }
+    
+    public function users()
+    {
+        return $this->hasMany(User::class);
     }
 }

@@ -27,10 +27,6 @@ class AuthController extends Controller
         $data = $request->validated();
         $client_code = $request->clientCode();
 
-        // Increment client code uses if applicable
-        if ($client_code)
-            ClientCodeUsed::dispatch($client_code);
-
         if ($request->hasFile('avatar_image')) {
             $file = $request->file('avatar_image');
 
@@ -43,6 +39,10 @@ class AuthController extends Controller
         }
 
         $user = User::create($data);
+
+        // Increment client code uses and notify admins
+        if ($client_code)
+            ClientCodeUsed::dispatch($client_code, $user, 'attach');
 
         $user->permissions = $user->getPermissions();
 
@@ -185,7 +185,7 @@ class AuthController extends Controller
 
         // Increment client code uses if applicable
         if ($client_code && $user->client_code_id !== $client_code->id)
-            ClientCodeUsed::dispatch($client_code);
+            ClientCodeUsed::dispatch($client_code, $user, 'attach');
 
         $user->update($data);
         $user->permissions = $user->getPermissions();

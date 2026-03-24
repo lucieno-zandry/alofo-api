@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->timestamps();
             $table->string('code')->unique();
             $table->boolean('is_active')->default(true);
-            $table->integer('max_uses');
+            $table->integer('max_uses')->default(999999);
             $table->integer('uses')->default(0);
         });
     }

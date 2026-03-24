@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ClientCodeUsed;
 use App\Http\Requests\ClientCodeCreateRequest;
 use App\Http\Requests\ClientCodeDeleteRequest;
 use App\Http\Requests\ClientCodeUpdateRequest;
+use App\Http\Requests\ClientCodeUserDetachRequest;
 use App\Models\ClientCode;
+use App\Models\User;
+use Illuminate\Http\Request;
 
 class ClientCodeController extends Controller
 {
@@ -48,12 +52,34 @@ class ClientCodeController extends Controller
         ];
     }
 
-    public function index()
+    public function showById(ClientCode $client_code)
     {
-        $client_codes = ClientCode::applyFilters()->get();
+        return [
+            'client_code' => $client_code
+        ];
+    }
+
+    public function index(Request $request)
+    {
+        $perPage = $request->get('per_page', 15);
+
+        $client_codes = ClientCode::withRelations()->paginate($perPage);
+
+        return response()->json($client_codes);
+    }
+
+    public function detachUser(ClientCodeUserDetachRequest $request, ClientCode $client_code)
+    {
+        $user = User::find($request->user_id);
+        $performedBy = auth()->user();
+
+        $user->client_code_id = null;
+        $user->save();
+
+        ClientCodeUsed::dispatch($client_code, $user, 'detach', $performedBy);
 
         return [
-            'client_codes' => $client_codes
+            'message' => 'Client code detached successfully!'
         ];
     }
 }

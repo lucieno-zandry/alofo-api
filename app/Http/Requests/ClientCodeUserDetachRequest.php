@@ -4,14 +4,14 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ClientCodeCreateRequest extends FormRequest
+class ClientCodeUserDetachRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('detachUser');
     }
 
     /**
@@ -22,9 +22,7 @@ class ClientCodeCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'alpha_num:ascii', 'min:6', 'unique:client_codes'],
-            'is_active' => ['required', 'boolean'],
-            'max_uses' => ['integer', 'min:1'],
+            'user_id' => 'exists:users,id',
         ];
     }
 }

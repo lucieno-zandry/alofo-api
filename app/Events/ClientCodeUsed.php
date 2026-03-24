@@ -3,6 +3,7 @@
 namespace App\Events;
 
 use App\Models\ClientCode;
+use App\Models\User;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -18,7 +19,7 @@ class ClientCodeUsed
     /**
      * Create a new event instance.
      */
-    public function __construct(public ClientCode $client_code)
+    public function __construct(public ClientCode $client_code, public User $user, public string $action = 'attach', public ?User $performedBy)
     {
         //
     }
