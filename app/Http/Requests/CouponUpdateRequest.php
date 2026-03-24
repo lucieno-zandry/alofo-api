@@ -13,7 +13,7 @@ class CouponUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('update', $this->route('coupon'));
     }
 
     /**
@@ -24,7 +24,7 @@ class CouponUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['unique:coupons', 'size:6'],
+            'code' => ['unique:coupons', 'min:6', 'max:10'],
             'type' => [Rule::enum(DiscountType::class)],
             'discount' => ['numeric'],
             'min_order_value' => ['numeric'],

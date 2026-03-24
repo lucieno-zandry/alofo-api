@@ -130,6 +130,7 @@ Route::prefix('coupon')
         Route::get('all', 'index');
 
         Route::middleware('api.auth.approved')->group(function () {
+            Route::get('get-by-id/{coupon}', 'showById');
             Route::post('create', 'store');
             Route::put('update/{coupon}', 'update');
             Route::delete('delete', 'destroy');

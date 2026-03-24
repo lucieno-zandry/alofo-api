@@ -6,6 +6,7 @@ use App\Http\Requests\CouponCreateRequest;
 use App\Http\Requests\CouponDeleteRequest;
 use App\Http\Requests\CouponUpdateRequest;
 use App\Models\Coupon;
+use Illuminate\Http\Request;
 
 class CouponController extends Controller
 {
@@ -33,7 +34,7 @@ class CouponController extends Controller
     public function show(string $code)
     {
         $coupon = Coupon::withRelations()->where("code", $code)->first();
-        
+
         if (!$coupon || !$coupon->is_active() || !$coupon->is_usable()) $coupon = null;
 
         return [
@@ -41,18 +42,24 @@ class CouponController extends Controller
         ];
     }
 
-    public function index()
+    public function showById(Coupon $coupon)
     {
-        $coupons = Coupon::applyFilters()->get();
-
         return [
-            'coupons' => $coupons
+            'coupon' => $coupon
         ];
+    }
+
+    public function index(Request $request)
+    {
+        $per_page = $request->get('per_page', 15);
+        $coupons = Coupon::withRelations()->paginate($per_page);
+
+        return response()->json($coupons);
     }
 
     public function destroy(CouponDeleteRequest $request)
     {
-        $coupon_ids = implode(',', $request->coupon_ids);
+        $coupon_ids = explode(',', $request->coupon_ids);
 
         $deleted = Coupon::whereIn('id', $coupon_ids)->delete();
 

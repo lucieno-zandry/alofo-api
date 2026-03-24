@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Coupon;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CouponDeleteRequest extends FormRequest
@@ -11,7 +12,7 @@ class CouponDeleteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return $this->user()->can('destroy', Coupon::class);
     }
 
     /**

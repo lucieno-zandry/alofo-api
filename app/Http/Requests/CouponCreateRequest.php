@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\DiscountType;
+use App\Models\Coupon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -13,7 +14,7 @@ class CouponCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user()->can('create', Coupon::class);
     }
 
     /**
@@ -24,7 +25,7 @@ class CouponCreateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'unique:coupons', 'size:6'],
+            'code' => ['required', 'unique:coupons', 'min:6', 'max:10'],
             'type' => ['required', Rule::enum(DiscountType::class)],
             'discount' => ['required', 'numeric'],
             'min_order_value' => ['required', 'numeric'],
