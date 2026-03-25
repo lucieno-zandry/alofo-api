@@ -165,6 +165,7 @@ Route::prefix('promotion')
         Route::get('get/{promotion}', 'show');
         Route::put('{promotion}/attach-variant', 'attachVariant');
         Route::put('{promotion}/detach-variant', 'detachVariant');
+        Route::put('{promotion}/bulk-attach-variants', 'bulkAttachVariants');
     });
 
 // User management – all actions require full auth + approval

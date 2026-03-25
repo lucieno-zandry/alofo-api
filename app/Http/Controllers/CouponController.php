@@ -51,8 +51,54 @@ class CouponController extends Controller
 
     public function index(Request $request)
     {
-        $per_page = $request->get('per_page', 15);
-        $coupons = Coupon::withRelations()->paginate($per_page);
+        // Allowed sort columns to prevent SQL injection
+        $allowedSortColumns = ['id', 'code', 'name', 'type', 'is_active', 'created_at', 'expires_at'];
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // Validate sort column
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'id';
+        }
+        $sortOrder = strtolower($sortOrder) === 'desc' ? 'desc' : 'asc';
+
+        // Prepare eager loads
+        $withParam = $request->get('with');
+        $relations = $withParam ? explode(',', $withParam) : [];
+
+        // Build query
+        $query = Coupon::query();
+
+        // Apply search filter (search on code and name)
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('code', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply active status filter (if provided and not 'all')
+        if ($request->has('is_active') && $request->get('is_active') !== 'all') {
+            $isActive = filter_var($request->get('is_active'), FILTER_VALIDATE_BOOLEAN);
+            $query->where('is_active', $isActive);
+        }
+
+        // Apply type filter (if provided and not 'all')
+        if ($request->has('type') && $request->get('type') !== 'all') {
+            $type = $request->get('type');
+            $query->where('type', $type);
+        }
+
+        // Apply sorting
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Apply eager loading
+        if (!empty($relations)) {
+            $query->with($relations);
+        }
+
+        // Paginate
+        $perPage = $request->get('per_page', 15);
+        $coupons = $query->paginate($perPage);
 
         return response()->json($coupons);
     }

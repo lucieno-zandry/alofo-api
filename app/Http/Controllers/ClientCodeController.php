@@ -59,13 +59,55 @@ class ClientCodeController extends Controller
         ];
     }
 
+
+
     public function index(Request $request)
     {
+        // Allowed sort columns to prevent SQL injection
+        $allowedSortColumns = ['id', 'name', 'code', 'is_active', 'created_at'];
+        $sortBy = $request->get('sort_by', 'id');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        // Validate sort column
+        if (!in_array($sortBy, $allowedSortColumns)) {
+            $sortBy = 'id';
+        }
+        $sortOrder = strtolower($sortOrder) === 'desc' ? 'desc' : 'asc';
+
+        // Prepare eager loads
+        $withParam = $request->get('with', 'users');
+        $relations = $withParam ? explode(',', $withParam) : [];
+
+        // Build query
+        $query = ClientCode::query();
+
+        // Apply search filter (search on name and code)
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        }
+
+        // Apply active status filter (if provided and not 'all')
+        if ($request->has('is_active') && $request->get('is_active') !== 'all') {
+            $isActive = filter_var($request->get('is_active'), FILTER_VALIDATE_BOOLEAN);
+            $query->where('is_active', $isActive);
+        }
+
+        // Apply sorting
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Apply eager loading
+        if (!empty($relations)) {
+            $query->with($relations);
+        }
+
+        // Paginate
         $perPage = $request->get('per_page', 15);
+        $clientCodes = $query->paginate($perPage);
 
-        $client_codes = ClientCode::withRelations()->paginate($perPage);
-
-        return response()->json($client_codes);
+        return response()->json($clientCodes);
     }
 
     public function detachUser(ClientCodeUserDetachRequest $request, ClientCode $client_code)

@@ -83,6 +83,7 @@ class ProductIndexRequest extends FormRequest
             'images',
             'variant_groups',
             'variant_groups.variant_options',
+            'variants.variant_options.variant_group'
         ];
 
         return array_values(
