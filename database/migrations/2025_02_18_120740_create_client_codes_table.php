@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ClientCode;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -19,6 +20,10 @@ return new class extends Migration {
             $table->integer('max_uses')->default(999999);
             $table->integer('uses')->default(0);
         });
+
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreignIdFor(ClientCode::class)->nullable()->constrained()->nullOnDelete();
+        });
     }
 
     /**
@@ -27,5 +32,6 @@ return new class extends Migration {
     public function down(): void
     {
         Schema::dropIfExists('client_codes');
+        Schema::dropColumns('users', 'client_code_id');
     }
 };

@@ -100,12 +100,22 @@ class Functions
     public static function get_address_snapshot(Address $address): array
     {
         return [
-            'id'           => $address->id,
-            'fullname'     => $address->fullname,
-            'line1'        => $address->line1,
-            'line2'        => $address->line2,
-            'line3'        => $address->line3,
-            'phone_number' => $address->phone_number,
+            'id'             => $address->id,
+            'user_id'        => $address->user_id,
+            'label'          => $address->label,
+            'recipient_name' => $address->recipient_name,
+            'phone'          => $address->phone,
+            'phone_alt'      => $address->phone_alt,
+            'line1'          => $address->line1,
+            'line2'          => $address->line2,
+            'city'           => $address->city,
+            'state'          => $address->state,
+            'postal_code'    => $address->postal_code,
+            'country'        => $address->country,
+            'address_type'   => $address->address_type,
+            'is_default'     => $address->is_default,
+            'created_at'     => $address->created_at,
+            'updated_at'     => $address->updated_at,
         ];
     }
 

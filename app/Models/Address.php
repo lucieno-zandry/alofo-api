@@ -15,13 +15,23 @@ class Address extends Model
   use SoftDeletes, WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
 
   protected $fillable = [
+    'user_id',
+    'label',
+    'recipient_name',
+    'phone',
+    'phone_alt',
     'line1',
     'line2',
-    'line3',
-    'phone_number',
-    'fullname',
+    'city',
+    'state',
+    'postal_code',
+    'country',
+    'address_type',
     'is_default',
-    'user_id'
+  ];
+
+  protected $casts = [
+    'is_default' => 'boolean',
   ];
 
   public function user()
