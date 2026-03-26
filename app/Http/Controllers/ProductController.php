@@ -16,6 +16,9 @@ use App\Queries\ProductQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+use function Illuminate\Log\log;
 
 class ProductController extends Controller
 {

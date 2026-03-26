@@ -42,6 +42,10 @@ class RegisterRequest extends FormRequest
                 'max:2048',
             ],
             'client_code_id' => [$this->clientCodeRule],
+            'preferred_theme' => ['sometimes', 'string', 'max:10'],
+            'preferred_language' => ['sometimes', 'string', 'max:10'],
+            'preferred_timezone' => ['sometimes', 'timezone'],
+            'preferred_currency' => ['sometimes', 'string', 'size:3'],
         ];
     }
 

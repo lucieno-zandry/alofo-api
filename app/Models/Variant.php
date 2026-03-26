@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\HasEffectivePrice;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class Variant extends Model
 {
@@ -91,7 +93,10 @@ class Variant extends Model
             return $basePrice;
         }
 
-        return $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
+        $discountedPrice = $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
+        $converted = app(CurrencyService::class)->convert(amount: $discountedPrice);
+
+        return $converted;
     }
 
     /**

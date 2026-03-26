@@ -24,7 +24,7 @@ class AuthController extends Controller
 {
     public function register(RegisterRequest $request)
     {
-        $data = $request->validated();
+        $data = $request->only('email', 'password', 'name', 'role', 'avatar_image', 'client_code_id');
         $client_code = $request->clientCode();
 
         if ($request->hasFile('avatar_image')) {
@@ -39,6 +39,16 @@ class AuthController extends Controller
         }
 
         $user = User::create($data);
+
+        // Create users preferences
+        $preferences = [
+            'theme'    => $request->input('preferred_theme', 'system'),
+            'language' => $request->input('preferred_language', 'en'),
+            'timezone' => $request->input('preferred_timezone', 'UTC'),
+            'currency' => $request->input('preferred_currency', 'USD'),
+        ];
+
+        $user->preferences()->create($preferences);
 
         // Increment client code uses and notify admins
         if ($client_code)

@@ -14,6 +14,7 @@ use App\Http\Controllers\RefundRequestController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserPreferenceController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\VariantGroupController;
 use App\Http\Controllers\VariantOptionController;
@@ -177,6 +178,14 @@ Route::prefix('user')
         Route::get('get/{user_id}', 'show');
         Route::get('all', 'index');
         Route::post('{user}/status', 'storeStatus');
+    });
+
+Route::prefix('user/preferences')
+    ->middleware('api.auth')
+    ->controller(UserPreferenceController::class)
+    ->group(function () {
+        Route::get('', 'show');
+        Route::put('', 'update');
     });
 
 // Address – requires authentication (email verified), but not approval (customers can manage addresses)

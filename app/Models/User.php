@@ -174,7 +174,8 @@ class User extends Authenticatable
                 'performed_transaction_audit_logs',
                 'reviewed_transactions',
                 'statuses.set_by_user',
-                'set_statuses.user'
+                'set_statuses.user',
+                'preferences'
             ];
 
             $relations = array_intersect($relations, $validRelations);
@@ -208,5 +209,10 @@ class User extends Authenticatable
     public function set_statuses()
     {
         return $this->hasMany(UserStatus::class, 'set_by');
+    }
+
+    public function preferences()
+    {
+        return $this->hasOne(UserPreference::class, 'user_id');
     }
 }
