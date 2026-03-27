@@ -16,9 +16,6 @@ use App\Queries\ProductQuery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-
-use function Illuminate\Log\log;
 
 class ProductController extends Controller
 {
@@ -100,16 +97,6 @@ class ProductController extends Controller
     {
         $products = ProductQuery::make($request)->paginate($request->limit ?? 20);
 
-        $user = auth('sanctum')->user();
-
-        foreach ($products as $product) {
-            if ($product->relationLoaded('variants')) {
-                foreach ($product->variants as $variant) {
-                    $variant->setEffectivePriceForUser($user);
-                }
-            }
-        }
-
         return response()->json($products);
     }
 
@@ -120,12 +107,6 @@ class ProductController extends Controller
             'variants' => fn($q) => $q->with(['variant_options', 'image', 'promotions' => fn($q) => $q->active()]),
             'images'
         ])->where('slug', $slug)->firstOrFail();
-
-        $user = auth('sanctum')->user();
-
-        foreach ($product->variants as $variant) {
-            $variant->setEffectivePriceForUser($user);
-        }
 
         return ['product' => $product];
     }

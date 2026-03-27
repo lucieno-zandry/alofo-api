@@ -34,6 +34,8 @@ class CurrencyService
 
     public function convert(float $amount): float
     {
+        
+        Log::debug($amount);
         $rates = $this->getRates();
         $from = $this->getFrom();
         $to = $this->getTo();

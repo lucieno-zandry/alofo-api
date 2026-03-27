@@ -37,11 +37,11 @@ class CartItemHelpers
         }
 
         // Compute effective price for the current user
-        $effectivePrice = $variant->getEffectivePrice(); // uses auth()->user()
+        $effectivePrice = $variant->effective_price; // uses auth()->user()
         $basePrice = $variant->price;
 
         // Get applied promotions (already filtered for user)
-        $appliedPromotions = $variant->getAppliedPromotions(); // returns Collection of Promotion models
+        $appliedPromotions = $variant->applied_promotions; // returns Collection of Promotion models
 
         // Build snapshot of applied promotions for frontend badges
         $promotionsSnapshot = $appliedPromotions->map(fn($promo) => [

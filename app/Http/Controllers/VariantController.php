@@ -99,10 +99,6 @@ class VariantController extends Controller
         $user = auth('sanctum')->user();
         $variants = Variant::applyFilters()->get();
 
-        foreach ($variants as $variant) {
-            $variant->setEffectivePriceForUser($user);
-        }
-
         return [
             'variants' => $variants
         ];
@@ -112,8 +108,6 @@ class VariantController extends Controller
     {
         $user = auth('sanctum')->user();
         $variant = Variant::withRelations()->find($id);
-
-        $variant->setEffectivePriceForUser($user);
 
         return [
             'variant' => $variant
