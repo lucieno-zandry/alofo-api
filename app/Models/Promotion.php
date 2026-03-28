@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
@@ -23,6 +25,15 @@ class Promotion extends Model
     ];
 
     public $applied_promotion = 0;
+
+    public function getDiscountAttribute($value)
+    {
+        if ($this->type === DiscountType::FIXED_AMOUNT->value) {
+            return app(CurrencyService::class)->convert($value);
+        }
+
+        return $value;
+    }
 
     public function is_active(): bool
     {

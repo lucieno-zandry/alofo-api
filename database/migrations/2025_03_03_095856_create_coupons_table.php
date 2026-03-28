@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->id();
             $table->timestamps();
             $table->string('code')->unique();
-            $table->enum('type', DiscountType::toArray())->default('percentage');
+            $table->enum('type', DiscountType::toArray())->default('PERCENTAGE');
             $table->float('discount');
             $table->float('min_order_value');
             $table->smallInteger('max_uses')->nullable();

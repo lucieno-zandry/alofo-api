@@ -17,7 +17,7 @@ return new class extends Migration {
             $table->id();
             $table->timestamps();
             $table->float('discount');
-            $table->enum('type', DiscountType::toArray())->default('percentage');
+            $table->enum('type', DiscountType::toArray())->default('PERCENTAGE');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->boolean('is_active')->default(true);

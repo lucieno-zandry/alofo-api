@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
@@ -13,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class Coupon extends Model
 {
     use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasFactory;
-    
+
     protected $fillable = [
         'code',
         'type',
@@ -40,5 +42,14 @@ class Coupon extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function getDiscountAttribute($value)
+    {
+        if ($this->type === DiscountType::FIXED_AMOUNT->value) {
+            return app(CurrencyService::class)->convert($value);
+        }
+
+        return $value;
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
 use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
@@ -12,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class Variant extends Model
 {
@@ -74,6 +76,11 @@ class Variant extends Model
         return max($price, 0); // ensure non‑negative
     }
 
+    public function getPriceAttribute($value)
+    {
+        return app(CurrencyService::class)->convert($value);
+    }
+
     /**
      * Get the effective price for the current user based on applicable promotions.
      *
@@ -84,22 +91,21 @@ class Variant extends Model
     {
         $user = auth('sanctum')->user();
         $basePrice = $this->price;
+        $effectivePrice = $basePrice;
 
         // Load promotions if not already loaded
         if (!$this->relationLoaded('promotions')) {
             $this->load(['promotions' => fn($q) => $q->active()]);
         }
 
+        /** @var Collection */
         $applicablePromotions = $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
 
-        if ($applicablePromotions->isEmpty()) {
-            return $basePrice;
+        if ($applicablePromotions->isNotEmpty()) {
+            $effectivePrice = $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
         }
 
-        $discountedPrice = $this->calculateDiscountedPrice($basePrice, $applicablePromotions);
-        $converted = app(CurrencyService::class)->convert(amount: $discountedPrice);
-
-        return $converted;
+        return $effectivePrice;
     }
 
     /**
@@ -131,7 +137,15 @@ class Variant extends Model
             $this->load(['promotions' => fn($q) => $q->active()]);
         }
 
-        return $this->promotions->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
+        return $this->promotions
+            ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user))
+            ->map(function ($promotion) {
+                if ($promotion->type === DiscountType::FIXED_AMOUNT->value) {
+                    $promotion->discount = app(CurrencyService::class)->convert(amount: $promotion->discount);
+                }
+
+                return $promotion;
+            });
     }
 
     /**
