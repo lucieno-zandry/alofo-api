@@ -5,12 +5,14 @@ namespace App\Models;
 // app/Models/RefundRequest.php
 namespace App\Models;
 
+use App\Traits\HasEffectivePrice;
+use App\Traits\WithRelationships;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
 class RefundRequest extends Model
 {
-    use HasUuids;
+    use HasUuids, WithRelationships, HasEffectivePrice;
 
     protected $table = 'refund_requests';
     protected $primaryKey = 'uuid';
@@ -52,5 +54,16 @@ class RefundRequest extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_uuid');
+    }
+
+    public function convertCurrency()
+    {
+        $this->setValueToConvertedCurrency('amount', $this->amount);
+
+        if ($this->relationLoaded('order'))
+            $this->order?->convertCurrency();
+
+        if ($this->relationLoaded('transaction'))
+            $this->transaction?->convertCurrency();
     }
 }

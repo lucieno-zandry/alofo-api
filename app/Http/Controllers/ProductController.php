@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DiscountType;
 use App\Helpers\Functions;
 use App\Helpers\ProductFullUpdateService;
 use App\Http\Requests\ProductCreateRequest;
@@ -13,9 +14,11 @@ use App\Http\Requests\ProductUpdateRequest;
 use App\Models\Image;
 use App\Models\Product;
 use App\Queries\ProductQuery;
+use App\Services\CurrencyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -97,6 +100,11 @@ class ProductController extends Controller
     {
         $products = ProductQuery::make($request)->paginate($request->limit ?? 20);
 
+        /** @var \App\Models\Product */
+        foreach ($products as $product) {
+            $product->convertCurrency();
+        }
+
         return response()->json($products);
     }
 
@@ -107,6 +115,8 @@ class ProductController extends Controller
             'variants' => fn($q) => $q->with(['variant_options', 'image', 'promotions' => fn($q) => $q->active()]),
             'images'
         ])->where('slug', $slug)->firstOrFail();
+
+        $product->convertCurrency();
 
         return ['product' => $product];
     }
@@ -151,7 +161,6 @@ class ProductController extends Controller
                         'value' => $opt['value']
                     ]);
 
-                    // ⚠️ better key than value alone (explained below)
                     $optionMap[$group->name . ':' . $opt['value']] = $option->id;
                 }
             }
@@ -238,10 +247,13 @@ class ProductController extends Controller
                 if ($facet['field_name'] === 'price_min' && isset($facet['stats'])) {
                     $minPrice = $facet['stats']['min'];
                 }
-                if ($facet['field_name'] === 'price_max' && isset($facet['stats'])) {
+                if ($facet['field_name'] === 'price_max' && isset($facet['stats']) && $facet['stats']['max'] > 0) {
                     $maxPrice = $facet['stats']['max'];
                 }
             }
+
+            $minPrice = app(CurrencyService::class)->convert($minPrice) ?? 0;
+            $maxPrice = app(CurrencyService::class)->convert($maxPrice) ?? 1000;
 
             // Round min down, max up
             $min = floor($minPrice);

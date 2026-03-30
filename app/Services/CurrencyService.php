@@ -8,10 +8,27 @@ use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
-    protected function isValidCurrency(string $currency): bool
+    public function isValidCurrency(string $currency): bool
     {
         $rates = $this->getRates();
         return isset($rates[$currency]);
+    }
+
+    public function getFrom(): string
+    {
+        return 'EUR';
+    }
+
+    protected function getTo(): string
+    {
+        $currency = request()->header('X-Currency');
+        $rates = $this->getRates(); // cached, safe to call
+
+        if (!$currency || !isset($rates[strtoupper($currency)])) {
+            return $this->getFrom(); // fallback to EUR
+        }
+
+        return strtoupper($currency);
     }
 
     public function getRates()
@@ -32,33 +49,28 @@ class CurrencyService
         });
     }
 
-    public function convert(float $amount): float
+    public function convert(float $amount, ?string $from = '', ?string $to = ''): float
     {
-        
-        Log::debug($amount);
         $rates = $this->getRates();
-        $from = $this->getFrom();
-        $to = $this->getTo();
+
+        if (!$from) {
+            $from = $this->getFrom();
+        }
+
+        if (!$to) {
+            $to = $this->getTo();
+        }
 
         // Convert to EUR first if needed
         $inEur = ($from === 'EUR') ? $amount : $amount / $rates[$from];
         return ($to === 'EUR') ? $inEur : $inEur * $rates[$to];
     }
 
-    protected function getFrom(): string
+    public function invert(float $amount): float
     {
-        return 'EUR';
-    }
+        $to = $this->getFrom();
+        $from = $this->getTo();
 
-    protected function getTo(): string
-    {
-        $currency = request()->header('X-Currency');
-        $rates = $this->getRates(); // cached, safe to call
-
-        if (!$currency || !isset($rates[strtoupper($currency)])) {
-            return $this->getFrom(); // fallback to EUR
-        }
-
-        return strtoupper($currency);
+        return $this->convert(amount: $amount, to: $to, from: $from);
     }
 }

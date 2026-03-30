@@ -2,9 +2,11 @@
 
 namespace App\Helpers;
 
+use App\Enums\DiscountType;
 use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Image;
+use App\Services\CurrencyService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Storage;
@@ -130,6 +132,10 @@ class Functions
             'discount'        => $coupon->discount,
             'min_order_value' => $coupon->min_order_value,
         ];
+    }
+
+    public function get_converted_currency_variant(){
+        
     }
 
     public static function get_lang(): string

@@ -3,6 +3,7 @@
 namespace App\Queries;
 
 use App\Models\Product;
+use App\Services\CurrencyService;
 use Illuminate\Http\Request;
 use Laravel\Scout\Builder;
 
@@ -18,11 +19,13 @@ class ProductQuery
         }
 
         if ($request->filled('min_price')) {
-            $builder->where('price_min', '>=' . (float) $request->min_price);
+            $min_price = app(CurrencyService::class)->invert($request->min_price);
+            $builder->where('price_min', '>=' . (float) $min_price);
         }
 
         if ($request->filled('max_price')) {
-            $builder->where('price_max', '<=' . (float) $request->max_price);
+            $max_price = app(CurrencyService::class)->invert($request->max_price);
+            $builder->where('price_max', '<=' . (float) $max_price);
         }
 
         if ($request->filled('variant_option_ids')) {

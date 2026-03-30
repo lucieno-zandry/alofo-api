@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\CustomerFilterable;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -12,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    use WithRelationships, WithPagination, WithOrdering, ApplyFilters, DynamicConditionApplicable, CustomerFilterable;
+    use WithRelationships, WithPagination, WithOrdering, ApplyFilters, DynamicConditionApplicable, CustomerFilterable, HasEffectivePrice;
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;
@@ -89,5 +91,11 @@ class Transaction extends Model
     public function preformed_by_user()
     {
         return $this->belongsTo(User::class, 'performed_by');
+    }
+
+    public function convertCurrency()
+    {
+        $this->setValueToConvertedCurrency('amount', $this->amount);
+        return $this;
     }
 }

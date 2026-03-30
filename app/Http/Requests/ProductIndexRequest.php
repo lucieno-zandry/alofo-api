@@ -64,6 +64,7 @@ class ProductIndexRequest extends FormRequest
         $this->merge([
             'limit' => $this->limit ?? 20,
             'offset' => $this->offset ?? 0,
+            'min_price' => $this->min_price ?? 0,
         ]);
     }
 

@@ -6,6 +6,7 @@ use App\Enums\DiscountType;
 use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -17,7 +18,7 @@ use Illuminate\Support\Facades\Log;
 
 class Variant extends Model
 {
-    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
 
     protected $fillable = [
         'product_id',
@@ -74,11 +75,6 @@ class Variant extends Model
         }
 
         return max($price, 0); // ensure non‑negative
-    }
-
-    public function getPriceAttribute($value)
-    {
-        return app(CurrencyService::class)->convert($value);
     }
 
     /**
@@ -138,14 +134,7 @@ class Variant extends Model
         }
 
         return $this->promotions
-            ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user))
-            ->map(function ($promotion) {
-                if ($promotion->type === DiscountType::FIXED_AMOUNT->value) {
-                    $promotion->discount = app(CurrencyService::class)->convert(amount: $promotion->discount);
-                }
-
-                return $promotion;
-            });
+            ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
     }
 
     /**
@@ -201,5 +190,43 @@ class Variant extends Model
         }
 
         return $query;
+    }
+
+    public function convertCurrency(): static
+    {
+        $this->setValuesToConvertedCurrency([
+            'price' => $this->price,
+            'effective_price' => $this->effective_price,
+        ]);
+
+        if ($this->relationLoaded('product')) {
+            $this->product->convertCurrency();
+        }
+
+        if ($this->applied_promotions) {
+            /** @var \App\Models\Promotion */
+            foreach ($this->applied_promotions as $promotion) {
+                $promotion->convertCurrency();
+            }
+        }
+
+        return $this;
+    }
+
+    // Variant snapshot (base price only, effective price is stored separately)
+    public function snapshot(): array
+    {
+        return [
+            'id'    => $this->id,
+            'sku'   => $this->sku,
+            'price' => $this->price,
+            'image' => $this->image?->url ?? null,
+        ];
+    }
+
+    public function convertSnapshotCurrency(array $snapshot): array
+    {
+        $snapshot['price'] = app(CurrencyService::class)->convert($snapshot['price']);
+        return $snapshot;
     }
 }

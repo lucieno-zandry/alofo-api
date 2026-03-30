@@ -129,7 +129,7 @@ class OrderController extends Controller
         if ($request->has('total_min')) {
             $query->where('total', '>=', $request->total_min);
         }
-        
+
         if ($request->has('total_max')) {
             $query->where('total', '<=', $request->total_max);
         }
@@ -138,15 +138,23 @@ class OrderController extends Controller
         $perPage = $request->get('per_page', 20);
         $orders = $query->paginate($perPage);
 
+        /** @var \App\Models\Order */
+        foreach ($orders as $order) {
+            $order->convertCurrency();
+        }
+
         return response()->json($orders);
     }
 
     public function show(string $order_uuid)
     {
+        /** @var \App\Models\Order | null*/
         $order = Order::withRelations()->where('uuid', $order_uuid)->first();
 
         if ($order?->has_no_successful_payment())
             $order = OrderHelpers::refresh_order($order);
+
+        $order?->convertCurrency();
 
         return [
             'order' => $order

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DiscountType;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
@@ -85,5 +86,36 @@ class Product extends Model
         }
 
         return $query;
+    }
+
+    public function convertCurrency()
+    {
+        if ($this->relationLoaded('variants')) {
+            /** @var \App\Models\Variant */
+            foreach ($this->variants as $variant) {
+                $variant->setValuesToConvertedCurrency([
+                    'price' => $variant->price,
+                    'effective_price' => $variant->effective_price,
+                ]);
+            }
+        }
+
+        if ($this->relationLoaded('cart_items')) {
+            /** @var \App\Models\CartItem */
+            foreach ($this->cart_items as $cartItem) {
+                $cartItem->convertCurrency();
+            }
+        }
+    }
+
+    public function snapshot()
+    {
+        return [
+            'id'          => $this->id,
+            'title'       => $this->title,
+            'slug'        => $this->slug,
+            'category_id' => $this->category_id,
+            'main_image'  => $this->images->first()?->url ?? null,
+        ];
     }
 }

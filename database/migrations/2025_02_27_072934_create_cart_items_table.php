@@ -27,10 +27,9 @@ return new class extends Migration {
             $table->json("variant_snapshot");
             $table->json("variant_options_snapshot");
             $table->float('unit_price');
-             $table->json('applied_promotions_snapshot')
+            $table->json('applied_promotions_snapshot')
                 ->nullable()
                 ->comment('Snapshot of promotions that contributed to the final price');
-
         });
     }
 

@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class CartItem extends Model
 {
-    use HasFactory, WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
 
     protected $fillable = [
         'count',
@@ -48,11 +50,6 @@ class CartItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function promotion()
-    {
-        return $this->belongsTo(Promotion::class);
-    }
-
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -68,5 +65,32 @@ class CartItem extends Model
     public function order()
     {
         return $this->belongsTo(Order::class, 'order_uuid', 'uuid');
+    }
+
+    public function convertCurrency(): static
+    {
+        $this->setValuesToConvertedCurrency([
+            'promotion_discount_applied' => $this->promotion_discount_applied,
+            'total' => $this->total,
+            'unit_price' => $this->unit_price,
+        ]);
+
+        $this->variant_snapshot = (new Variant)->convertSnapshotCurrency($this->variant_snapshot);
+        $this->applied_promotions_snapshot = (new Promotion)->convertSnapshotsCurrency($this->applied_promotions_snapshot);
+
+        if ($this->relationLoaded('variant'))
+            $this->variant->setValuesToConvertedCurrency([
+                'price' => $this->variant->price,
+                'effective_price' => $this->variant->effective_price,
+            ]);
+
+
+        if ($this->relationLoaded('order'))
+            $this->order?->convertCurrency();
+
+        if ($this->relationLoaded('product'))
+            $this->product?->convertCurrency();
+
+        return $this;
     }
 }

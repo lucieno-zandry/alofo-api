@@ -6,6 +6,7 @@ use App\Enums\DiscountType;
 use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Promotion extends Model
 {
-    use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
 
     protected $fillable = [
         'discount',
@@ -25,15 +26,6 @@ class Promotion extends Model
     ];
 
     public $applied_promotion = 0;
-
-    public function getDiscountAttribute($value)
-    {
-        if ($this->type === DiscountType::FIXED_AMOUNT->value) {
-            return app(CurrencyService::class)->convert($value);
-        }
-
-        return $value;
-    }
 
     public function is_active(): bool
     {
@@ -56,5 +48,48 @@ class Promotion extends Model
     public function variants()
     {
         return $this->belongsToMany(Variant::class);
+    }
+
+    public function convertCurrency()
+    {
+        if ($this?->type === DiscountType::FIXED_AMOUNT->value) {
+            $this->setValueToConvertedCurrency('discount', $this->discount);
+        }
+
+        if ($this->relationLoaded('variants')) {
+            /** @var \App\Models\Variant */
+            foreach ($this->variants as $variant) {
+                $variant->convertCurrency();
+            }
+        }
+
+        return $this;
+    }
+
+    public function snapshot()
+    {
+        return [
+            'id'       => $this->id,
+            'name'     => $this->name,
+            'badge'    => $this->badge,         // optional badge text/identifier
+            'discount' => $this->discount,
+            'type'     => $this->type,
+        ];
+    }
+
+    public function convertSnapshotCurrency(array $snapshot)
+    {
+        if ($snapshot['type'] === DiscountType::FIXED_AMOUNT->value)
+            $snapshot['discount'] = app(CurrencyService::class)->convert($snapshot['discount']);
+
+        return $snapshot;
+    }
+
+    public function convertSnapshotsCurrency(array $snapshots): array
+    {
+        foreach ($snapshots as $snapshot)
+            $snapshot = $this->convertSnapshotCurrency($snapshot);
+
+        return $snapshots;
     }
 }

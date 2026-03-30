@@ -20,6 +20,10 @@ class RefundRequestController extends Controller
             ->latest()
             ->paginate(20);
 
+        /** @var \App\Models\RefundRequest */
+        foreach ($requests as $request)
+            $request->convertCurrency();
+
         return ['refund_requests' => $requests];
     }
 

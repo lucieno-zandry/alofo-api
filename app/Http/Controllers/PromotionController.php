@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DiscountType;
 use App\Helpers\Functions;
 use App\Http\Requests\PromotionCreateRequest;
 use App\Http\Requests\PromotionDeleteRequest;
@@ -113,12 +114,19 @@ class PromotionController extends Controller
         $perPage = $request->get('per_page', 15);
         $promotions = $query->paginate($perPage);
 
+        /** @var \App\Models\Promotion */
+        foreach ($promotions as $promotion) {
+            $promotion->convertCurrency();
+        }
+
         return response()->json($promotions);
     }
 
     public function show(int $promotion_id)
     {
         $promotion = Promotion::withRelations()->find($promotion_id);
+
+        $promotion->convertCurrency();
 
         return [
             'promotion' => $promotion

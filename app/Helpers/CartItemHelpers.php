@@ -2,11 +2,16 @@
 
 namespace App\Helpers;
 
+use App\Enums\DiscountType;
 use App\Models\CartItem;
 use App\Models\Variant;
+use App\Services\CurrencyService;
+use Illuminate\Support\Facades\Log;
 
 class CartItemHelpers
 {
+
+
     /**
      * Create or update a cart item with current prices and snapshots.
      *
@@ -25,7 +30,6 @@ class CartItemHelpers
         // Load variant with necessary relations if not provided
         if (!$variant) {
             $variant = Variant::with([
-                'promotions',
                 'product.images',
                 'variant_options.variant_group',
                 'image'
@@ -37,38 +41,20 @@ class CartItemHelpers
         }
 
         // Compute effective price for the current user
-        $effectivePrice = $variant->effective_price; // uses auth()->user()
+        $effectivePrice =  $variant->effective_price;
         $basePrice = $variant->price;
 
         // Get applied promotions (already filtered for user)
         $appliedPromotions = $variant->applied_promotions; // returns Collection of Promotion models
 
         // Build snapshot of applied promotions for frontend badges
-        $promotionsSnapshot = $appliedPromotions->map(fn($promo) => [
-            'id'       => $promo->id,
-            'name'     => $promo->name,          // assuming a name field exists
-            'badge'    => $promo->badge,         // optional badge text/identifier
-            'discount' => $promo->discount,
-            'type'     => $promo->type,
-        ])->values()->toArray();
+        $promotionsSnapshot = $appliedPromotions->map(fn($promo) => $promo->snapshot())->values()->toArray();
 
         // --- Snapshots ---
-        // Variant snapshot (base price only, effective price is stored separately)
-        $cartItem->variant_snapshot = [
-            'id'    => $variant->id,
-            'sku'   => $variant->sku,
-            'price' => $variant->price,
-            'image' => $variant->image?->url ?? null,
-        ];
+        $cartItem->variant_snapshot = $variant->snapshot();
 
         // Product snapshot
-        $cartItem->product_snapshot = [
-            'id'          => $variant->product->id,
-            'title'       => $variant->product->title,
-            'slug'        => $variant->product->slug,
-            'category_id' => $variant->product->category_id,
-            'main_image'  => $variant->product->images->first()?->url ?? null,
-        ];
+        $cartItem->product_snapshot = $variant->product?->snapshot();
 
         // Variant options snapshot
         $cartItem->variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);

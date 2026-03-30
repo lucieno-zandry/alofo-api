@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\CustomerFilterable;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -14,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, CustomerFilterable, DynamicConditionApplicable, ApplyFilters, SoftDeletes;
+    use WithOrdering, WithPagination, WithRelationships, CustomerFilterable, DynamicConditionApplicable, ApplyFilters, SoftDeletes, HasEffectivePrice;
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;
@@ -68,5 +70,36 @@ class Order extends Model
     public function refund_requests()
     {
         return $this->hasMany(RefundRequest::class, 'order_uuid');
+    }
+
+    public function convertCurrency()
+    {
+        $this->setValuesToConvertedCurrency([
+            'total' => $this->total,
+            'coupon_discount_applied' => $this->coupon_discount_applied,
+        ]);
+
+        if ($this->coupon_snapshot) {
+            $this->coupon_snapshot['discount'] = app(CurrencyService::class)->convert($this->coupon_snapshot['discount']);
+            $this->coupon_snapshot['min_order_value'] = app(CurrencyService::class)->convert($this->coupon_snapshot['min_order_value']);
+        }
+
+        if ($this->relationLoaded('coupon')) {
+            $this->coupon?->convertCurrency();
+        }
+
+        if ($this->relationLoaded('transactions')) {
+            /** @var \App\Models\Transaction */
+            foreach ($this->transactions as $transaction) {
+                $transaction->convertCurrency();
+            }
+        }
+
+        if ($this->relationLoaded('cart_items')) {
+            /** @var \App\Models\CartItem */
+            foreach ($this->cart_items as $cart_item) {
+                $cart_item->convertCurrency();
+            }
+        }
     }
 }

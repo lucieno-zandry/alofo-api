@@ -26,6 +26,7 @@ use App\Notifications\DisputeResolved;
 use App\Notifications\PaymentFailed;
 use App\Notifications\PaymentSuccess;
 use App\Notifications\RefundRequested;
+use App\Services\CurrencyService;
 use App\Services\TransactionRefundService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -130,6 +131,10 @@ class TransactionController extends Controller
 
         $transactions = $query->paginate($perPage)->appends($request->query());
 
+        /** @var \App\Models\Transaction */
+        foreach($transactions as $transaction)
+            $transaction->convertCurrency();
+
         return ['transactions' => $transactions];
     }
 
@@ -140,9 +145,12 @@ class TransactionController extends Controller
 
     public function show(string $transaction_uuid)
     {
+        /** @var \App\Models\Transaction | null */
         $transaction = Transaction::withRelations()
             ->customerFilterable()
             ->find($transaction_uuid);
+
+        $transaction?->convertCurrency();
 
         return ['transaction' => $transaction];
     }
@@ -157,12 +165,15 @@ class TransactionController extends Controller
         $data['user_id'] = auth()->id();
         $data['type']    = 'PAYMENT';
 
+        $amount = $request->amount;
+        $currency = app(CurrencyService::class)->getFrom();
+
         $uuid        = Str::uuid()->toString();
         $data['uuid'] = $uuid;
 
         $token        = request()->header('Authorization');
         $redirect_url = Functions::get_order_detail_page_url($request->order_uuid);
-        $payment_url  = "http://127.0.0.1:5500/index.html?amount={$request->amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}";
+        $payment_url  = "http://127.0.0.1:5500/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
 
         $data['payment_url'] = urlencode($payment_url);
 
@@ -279,9 +290,10 @@ class TransactionController extends Controller
 
     public function refund(TransactionRefundRequest $request, Transaction $transaction)
     {
+        $amount = $request->amount ?? $transaction->amount;
         $refund = app(TransactionRefundService::class)->refund(
             transaction: $transaction,
-            amount: $request->amount ?? $transaction->amount,
+            amount: $amount,
             reason: $request->reason,
             performedBy: auth()->id()
         );

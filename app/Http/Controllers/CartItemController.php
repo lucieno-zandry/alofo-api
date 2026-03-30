@@ -9,6 +9,8 @@ use App\Http\Requests\CartItemDeleteRequest;
 use App\Http\Requests\CartItemUpdateRequest;
 use App\Models\CartItem;
 use App\Models\Variant;
+use App\Services\CurrencyService;
+use Illuminate\Support\Facades\Log;
 
 class CartItemController extends Controller
 {
@@ -43,7 +45,7 @@ class CartItemController extends Controller
         }
 
         // Reload variant with relations for accurate price calculation
-        $variant = Variant::with(['promotions', 'product.images', 'variant_options.variant_group', 'image'])
+        $variant = Variant::with(['product.images', 'variant_options.variant_group', 'image'])
             ->find($cartItem->variant_id);
 
         CartItemHelpers::make_item(
@@ -74,7 +76,7 @@ class CartItemController extends Controller
 
     public function show(int $cartItemId)
     {
-        $cartItem = CartItem::withRelations()->find($cartItemId);
+        $cartItem = CartItem::withRelations()->find($cartItemId)?->convertCurrency();
 
         return [
             'cart_item' => $cartItem
@@ -86,7 +88,8 @@ class CartItemController extends Controller
         $cartItems = CartItem::applyFilters()
             ->where('user_id', auth()->id())
             ->notOrdered()
-            ->get();
+            ->get()
+            ->map(fn($cartItem) => $cartItem->convertCurrency());
 
         return [
             'cart_items' => $cartItems

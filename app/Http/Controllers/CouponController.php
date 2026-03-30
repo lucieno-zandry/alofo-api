@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\DiscountType;
 use App\Http\Requests\CouponCreateRequest;
 use App\Http\Requests\CouponDeleteRequest;
 use App\Http\Requests\CouponUpdateRequest;
@@ -37,6 +38,8 @@ class CouponController extends Controller
 
         if (!$coupon || !$coupon->is_active() || !$coupon->is_usable()) $coupon = null;
 
+        $coupon->convertCurrency();
+
         return [
             'coupon' => $coupon
         ];
@@ -44,6 +47,8 @@ class CouponController extends Controller
 
     public function showById(Coupon $coupon)
     {
+        $coupon->convertCurrency();
+
         return [
             'coupon' => $coupon
         ];
@@ -99,6 +104,11 @@ class CouponController extends Controller
         // Paginate
         $perPage = $request->get('per_page', 15);
         $coupons = $query->paginate($perPage);
+
+        /** @var \App\Models\Coupon */
+        foreach ($coupons as $coupon) {
+            $coupon->convertCurrency();
+        }
 
         return response()->json($coupons);
     }

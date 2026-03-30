@@ -6,6 +6,7 @@ use App\Enums\DiscountType;
 use App\Services\CurrencyService;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
+use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasFactory;
+    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasFactory, HasEffectivePrice;
 
     protected $fillable = [
         'code',
@@ -44,12 +45,12 @@ class Coupon extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function getDiscountAttribute($value)
+    public function convertCurrency()
     {
-        if ($this->type === DiscountType::FIXED_AMOUNT->value) {
-            return app(CurrencyService::class)->convert($value);
+        if ($this?->type === DiscountType::FIXED_AMOUNT->value) {
+            $this->setValueToConvertedCurrency('discount', $this->discount);
         }
 
-        return $value;
+        return $this;
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Helpers;
 
 use App\Enums\DiscountType;
+use App\Services\CurrencyService;
 use Illuminate\Database\Eloquent\Model;
 
 class DiscountHelpers
