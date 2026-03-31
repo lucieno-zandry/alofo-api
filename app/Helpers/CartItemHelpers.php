@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Enums\DiscountType;
 use App\Models\CartItem;
 use App\Models\Variant;
+use App\Models\VariantOption;
 use App\Services\CurrencyService;
 use Illuminate\Support\Facades\Log;
 
@@ -57,7 +58,7 @@ class CartItemHelpers
         $cartItem->product_snapshot = $variant->product?->snapshot();
 
         // Variant options snapshot
-        $cartItem->variant_options_snapshot = Functions::get_variant_options_snapshot($variant->variant_options);
+        $cartItem->variant_options_snapshot = (new VariantOption)->snapshots($variant->variant_options);
 
         // --- Pricing ---
         $cartItem->unit_price = $effectivePrice;

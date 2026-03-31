@@ -127,11 +127,15 @@ class Variant extends Model
      */
     public function getAppliedPromotionsAttribute(): Collection
     {
-        $user = $user ?? auth('sanctum')->user();
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
 
         if (!$this->relationLoaded('promotions')) {
             $this->load(['promotions' => fn($q) => $q->active()]);
         }
+
+        if ($user?->roleIsAdmin())
+            return $this->promotions;
 
         return $this->promotions
             ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));

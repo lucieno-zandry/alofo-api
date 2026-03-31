@@ -19,8 +19,7 @@ class OrderController extends Controller
     {
         $data = $request->only(['address_id', 'coupon_id']);
 
-        $cart_items = CartItem::with('promotion')
-            ->whereIn('id', $request->cart_item_ids)
+        $cart_items = CartItem::whereIn('id', $request->cart_item_ids)
             ->notOrdered()
             ->get();
 
@@ -38,7 +37,7 @@ class OrderController extends Controller
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
-        $order->address_snapshot = Functions::get_address_snapshot($address);
+        $order->address_snapshot = $address->snapshot();
 
         $order->save();
 

@@ -93,10 +93,7 @@ class Product extends Model
         if ($this->relationLoaded('variants')) {
             /** @var \App\Models\Variant */
             foreach ($this->variants as $variant) {
-                $variant->setValuesToConvertedCurrency([
-                    'price' => $variant->price,
-                    'effective_price' => $variant->effective_price,
-                ]);
+                $variant->convertCurrency();
             }
         }
 

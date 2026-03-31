@@ -2,15 +2,17 @@
 
 namespace App\Queries;
 
+use App\Http\Requests\ProductIndexRequest;
 use App\Models\Product;
 use App\Services\CurrencyService;
-use Illuminate\Http\Request;
 use Laravel\Scout\Builder;
 
 class ProductQuery
 {
-    public static function make(Request $request): Builder
+    public static function make(ProductIndexRequest $request): Builder
     {
+        $relevancySorting = $request->orderBy() === 'created_at' && $request->direction() === 'DESC';
+
         $search = $request->filled('search') ? $request->search : '*';
         $builder = Product::search($search);
 
@@ -39,8 +41,14 @@ class ProductQuery
 
         $builder->options(['infix' => 'always']);
 
-        return $builder->query(function ($query) use ($request) {
+        $builder = $builder->query(function ($query) use ($request) {
             return $query->with($request->relations());
-        })->orderBy($request->orderBy(), $request->direction());
+        });
+
+        if (!$relevancySorting) {
+            $builder = $builder->orderBy($request->orderBy(), $request->direction());
+        }
+
+        return $builder;
     }
 }

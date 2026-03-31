@@ -53,4 +53,23 @@ class Coupon extends Model
 
         return $this;
     }
+
+    public function snapshot(): array
+    {
+        return [
+            'id'              => $this->id,
+            'code'            => $this->code,
+            'type'            => $this->type,
+            'discount'        => $this->discount,
+            'min_order_value' => $this->min_order_value,
+        ];
+    }
+
+    public function convertSnapshotCurrency(array $snapshot): array
+    {
+        if ($snapshot['type'] === DiscountType::FIXED_AMOUNT->value)
+            $snapshot['discount'] = app(CurrencyService::class)->convert($snapshot['discount']);
+        
+        return $snapshot;
+    }
 }

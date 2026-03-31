@@ -80,8 +80,7 @@ class Order extends Model
         ]);
 
         if ($this->coupon_snapshot) {
-            $this->coupon_snapshot['discount'] = app(CurrencyService::class)->convert($this->coupon_snapshot['discount']);
-            $this->coupon_snapshot['min_order_value'] = app(CurrencyService::class)->convert($this->coupon_snapshot['min_order_value']);
+            $this->coupon_snapshot = (new Coupon)->convertSnapshotCurrency($this->coupon_snapshot);
         }
 
         if ($this->relationLoaded('coupon')) {

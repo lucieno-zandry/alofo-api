@@ -21,7 +21,9 @@ class CurrencyService
 
     protected function getTo(): string
     {
-        $currency = request()->header('X-Currency');
+        $userPreference = auth('sanctum')->user()->preferences?->currency;
+
+        $currency = $userPreference ?: request()->header('X-Currency');
         $rates = $this->getRates(); // cached, safe to call
 
         if (!$currency || !isset($rates[strtoupper($currency)])) {

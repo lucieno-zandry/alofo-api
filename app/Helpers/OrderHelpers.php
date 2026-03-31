@@ -44,12 +44,13 @@ class OrderHelpers
 
         // Apply coupon if present and valid
         if ($order->coupon_id) {
+            /** @var \App\Models\Coupon */
             $coupon = $order->coupon ?: Coupon::findOrFail($order->coupon_id);
 
             if ($coupon && $coupon->is_usable() && $order->total >= $coupon->min_order_value) {
                 $order->total = DiscountHelpers::apply_discount($coupon, $order->total);
                 $order->coupon_discount_applied = $coupon->applied_discount;
-                $order->coupon_snapshot = Functions::get_coupon_snapshot($coupon);
+                $order->coupon_snapshot = $coupon?->snapshot();
             } else {
                 $order->coupon_id = null;
                 $order->coupon_snapshot = null;
