@@ -8,6 +8,22 @@ use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
+    public function getUserCurrency(): ?string
+    {
+        return auth('sanctum')->user()?->preferences?->currency;
+    }
+
+    public function getCurrencyFromRequest(): ?string
+    {
+        $currency = request()->header('X-Currency', 'USD');
+        return $currency;
+    }
+
+    public function getCurrencyPreference(): string
+    {
+        return $this->getUserCurrency() ?? $this->getCurrencyFromRequest() ?? 'USD';
+    }
+
     public function isValidCurrency(string $currency): bool
     {
         $rates = $this->getRates();
@@ -21,9 +37,7 @@ class CurrencyService
 
     protected function getTo(): string
     {
-        $userPreference = auth('sanctum')->user()->preferences?->currency;
-
-        $currency = $userPreference ?: request()->header('X-Currency');
+        $currency = $this->getCurrencyPreference();
         $rates = $this->getRates(); // cached, safe to call
 
         if (!$currency || !isset($rates[strtoupper($currency)])) {
