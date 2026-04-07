@@ -225,6 +225,10 @@ class Variant extends Model
             'sku'   => $this->sku,
             'price' => $this->price,
             'image' => $this->image?->url ?? null,
+            'weight_kg' => $this->weight_kg,
+            'length_cm' => $this->length_cm,
+            'width_cm' => $this->width_cm,
+            'height_cm' => $this->height_cm,
         ];
     }
 

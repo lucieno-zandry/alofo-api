@@ -12,7 +12,7 @@ class ProductFullCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user()->can('create', Product::class);
+        return $this->user()->can('create', Product::class);
     }
 
     /**
@@ -46,6 +46,10 @@ class ProductFullCreateRequest extends FormRequest
             'variants.*.price' => ['required', 'numeric'],
             'variants.*.stock' => ['required', 'integer'],
             'variants.*.image' => ['nullable', 'image'],
+            'variants.*.weight_kg' => ['nullable', 'numeric'],
+            'variants.*.length_cm' => ['nullable', 'numeric'],
+            'variants.*.width_cm' => ['nullable', 'numeric'],
+            'variants.*.height_cm' => ['nullable', 'numeric'],
 
             // option references
             'variants.*.option_refs' => ['nullable', 'array'],

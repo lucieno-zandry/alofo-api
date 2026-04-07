@@ -12,6 +12,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\RefundRequestController;
 use App\Http\Controllers\ShipmentController;
+use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPreferenceController;
@@ -289,4 +290,28 @@ Route::prefix('refund-requests')
         Route::get('', 'index');
         Route::post('{refund_request}/approve', 'approve');
         Route::post('{refund_request}/reject', 'reject');
+    });
+
+
+Route::prefix('shipping-methods')
+    ->group(function () {
+        Route::middleware('api.auth.approved')->group(function () {
+            Route::get('', [ShippingMethodController::class, 'index']);
+            Route::get('{shipping_method}', [ShippingMethodController::class, 'show']);
+            Route::post('', [ShippingMethodController::class, 'store']);
+            Route::delete('', [ShippingMethodController::class, 'destroy']);
+            Route::put('', [ShippingMethodController::class, 'update']);
+            Route::delete('{shipping_method}', [ShippingMethodController::class, 'destroy']);
+
+            // Nested rates
+            Route::prefix('{shippingMethod}')->group(function () {
+                Route::get('rates', [ShippingMethodController::class, 'indexRates']);
+                Route::post('rates', [ShippingMethodController::class, 'storeRate']);
+                Route::get('rates/{rate}', [ShippingMethodController::class, 'showRate']);
+                Route::put('rates/{rate}', [ShippingMethodController::class, 'updateRate']);
+                Route::delete('rates/{rate}', [ShippingMethodController::class, 'destroyRate']);
+            });
+        });
+
+        Route::post('available', [ShippingMethodController::class, 'getAvailableMethods']);
     });

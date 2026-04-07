@@ -50,6 +50,10 @@ class ProductFullUpdateRequest extends FormRequest
             'variants.*.option_refs'    => ['nullable', 'array'],
             'variants.*.option_refs.*'  => ['string'],
             'variants.*.image' => ['nullable', 'image'],
+            'variants.*.weight_kg' => ['nullable', 'numeric'],
+            'variants.*.length_cm' => ['nullable', 'numeric'],
+            'variants.*.width_cm' => ['nullable', 'numeric'],
+            'variants.*.height_cm' => ['nullable', 'numeric'],
         ];
     }
 

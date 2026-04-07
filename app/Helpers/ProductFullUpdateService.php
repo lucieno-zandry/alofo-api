@@ -207,6 +207,10 @@ class ProductFullUpdateService
                 'sku'           => $variantData['sku'],
                 'price'         => $variantData['price'],
                 'stock'         => $variantData['stock'],
+                'weight_kg' => $variantData['weight_kg'] ?? null,
+                'length_cm' => $variantData['length_cm'] ?? null,
+                'width_cm' => $variantData['width_cm'] ?? null,
+                'height_cm' => $variantData['height_cm'] ?? null,
             ];
 
             // Image handling – only act if the 'image' key is present

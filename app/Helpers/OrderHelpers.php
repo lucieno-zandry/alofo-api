@@ -4,6 +4,7 @@ namespace App\Helpers;
 
 use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\ShippingMethod;
 use Illuminate\Database\Eloquent\Collection;
 
 class OrderHelpers
@@ -24,37 +25,55 @@ class OrderHelpers
      * Cart items are assumed to have frozen prices (unit_price, total).
      * This method only sets order totals and applies a coupon if present.
      */
-    public static function make_order(Order $order, Collection $cartItems, array $data = [])
+    public static function make_order(Order $order, Collection $cartItems, array $data = [], ?float $shippingCost = 0, ?ShippingMethod $shippingMethod = null)
     {
-        // Fill basic order attributes
+        // Fill basic attributes (address_id, coupon_id, shipping_method_id)
         foreach ($data as $key => $value) {
             $order->$key = $value;
         }
 
-        $order->user_id = auth()->id();
+        $order->user_id = auth('sanctum')->id();
         $order->total = 0;
         $order->coupon_discount_applied = 0;
 
-        // Attach cart items to the order and sum their totals
+        // Attach cart items and sum their totals (subtotal)
         foreach ($cartItems as $cartItem) {
             $cartItem->order_uuid = $order->uuid;
-            $cartItem->save(); // only update the UUID, do not recalc prices
-            $order->total += $cartItem->total;
+            $cartItem->save();
+            $order->total += $cartItem->total;  // $order->total becomes subtotal
         }
 
-        // Apply coupon if present and valid
-        if ($order->coupon_id) {
-            /** @var \App\Models\Coupon */
-            $coupon = $order->coupon ?: Coupon::findOrFail($order->coupon_id);
+        $subtotal = $order->total;
 
-            if ($coupon && $coupon->is_usable() && $order->total >= $coupon->min_order_value) {
-                $order->total = DiscountHelpers::apply_discount($coupon, $order->total);
+        // Apply coupon if present
+        if ($order->coupon_id) {
+            $coupon = $order->coupon ?: Coupon::findOrFail($order->coupon_id);
+            if ($coupon && $coupon->is_usable() && $subtotal >= $coupon->min_order_value) {
+                $discountedSubtotal = DiscountHelpers::apply_discount($coupon, $subtotal);
                 $order->coupon_discount_applied = $coupon->applied_discount;
-                $order->coupon_snapshot = $coupon?->snapshot();
+                $order->coupon_snapshot = $coupon->snapshot();
             } else {
                 $order->coupon_id = null;
                 $order->coupon_snapshot = null;
+                $discountedSubtotal = $subtotal;
             }
+        } else {
+            $discountedSubtotal = $subtotal;
+        }
+
+        // Add shipping cost
+        $order->total = $discountedSubtotal + $shippingCost;
+
+        // Optionally store shipping method snapshot if passed
+        if ($shippingMethod) {
+            $order->shipping_method_snapshot = [
+                'name' => $shippingMethod->name,
+                'carrier' => $shippingMethod->carrier,
+                'min_delivery_days' => $shippingMethod->min_delivery_days,
+                'max_delivery_days' => $shippingMethod->max_delivery_days,
+            ];
+            $order->shipping_method_id = $shippingMethod->id;
+            $order->shipping_cost = $shippingCost;
         }
 
         return $order;

@@ -10,6 +10,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Mail\Auth\Password\ResetMail;
 use App\Models\User;
+use App\Services\CurrencyService;
 use DateInterval;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -45,7 +46,7 @@ class AuthController extends Controller
             'theme'    => $request->input('preferred_theme', 'system'),
             'language' => $request->input('preferred_language', 'en'),
             'timezone' => $request->input('preferred_timezone', 'UTC'),
-            'currency' => $request->input('preferred_currency', 'USD'),
+            'currency' => $request->input('preferred_currency', app(CurrencyService::class)->getFrom()),
         ];
 
         $user->preferences()->create($preferences);

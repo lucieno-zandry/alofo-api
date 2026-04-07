@@ -15,7 +15,7 @@ class CurrencyService
 
     public function getCurrencyFromRequest(): ?string
     {
-        $currency = request()->header('X-Currency', 'USD');
+        $currency = request()->header('X-Currency', $this->getFrom());
         return $currency;
     }
 

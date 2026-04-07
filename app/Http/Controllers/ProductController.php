@@ -79,6 +79,8 @@ class ProductController extends Controller
     public function destroy(ProductDeleteRequest $request)
     {
         $product_ids = explode(',', $request->product_ids);
+
+        /** @var \App\Models\User */
         $user = Auth::user();
 
         $products = Product::whereIn('id', $product_ids)->get();
@@ -110,11 +112,7 @@ class ProductController extends Controller
 
     public function show(string $slug): array
     {
-        $product = Product::with([
-            'variant_groups.variant_options',
-            'variants' => fn($q) => $q->with(['variant_options', 'image', 'promotions' => fn($q) => $q->active()]),
-            'images'
-        ])->where('slug', $slug)->firstOrFail();
+        $product = Product::withRelations()->where('slug', $slug)->firstOrFail();
 
         $product->convertCurrency();
 
@@ -177,6 +175,10 @@ class ProductController extends Controller
                     'price' => $variantData['price'],
                     'stock' => $variantData['stock'],
                     'image_id' => $variantData['image_id'] ?? null,
+                    'weight_kg' => $variantData['weight_kg'] ?? null,
+                    'length_cm' => $variantData['length_cm'] ?? null,
+                    'width_cm' => $variantData['width_cm'] ?? null,
+                    'height_cm' => $variantData['height_cm'] ?? null,
                 ]);
 
                 if (!empty($variantData['option_refs'])) {

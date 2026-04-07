@@ -2,12 +2,9 @@
 
 namespace App\Helpers;
 
-use App\Enums\DiscountType;
 use App\Models\CartItem;
 use App\Models\Variant;
 use App\Models\VariantOption;
-use App\Services\CurrencyService;
-use Illuminate\Support\Facades\Log;
 
 class CartItemHelpers
 {

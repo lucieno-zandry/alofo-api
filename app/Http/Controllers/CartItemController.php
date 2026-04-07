@@ -9,8 +9,6 @@ use App\Http\Requests\CartItemDeleteRequest;
 use App\Http\Requests\CartItemUpdateRequest;
 use App\Models\CartItem;
 use App\Models\Variant;
-use App\Services\CurrencyService;
-use Illuminate\Support\Facades\Log;
 
 class CartItemController extends Controller
 {
@@ -18,7 +16,7 @@ class CartItemController extends Controller
     {
         $data = $request->validated();
 
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = auth('sanctum')->id();
         $data['variant_id'] = $variant->id;
         $data['product_id'] = $variant->product_id;
 
@@ -86,7 +84,7 @@ class CartItemController extends Controller
     public function index()
     {
         $cartItems = CartItem::applyFilters()
-            ->where('user_id', auth()->id())
+            ->where('user_id', auth('sanctum')->id())
             ->notOrdered()
             ->get()
             ->map(fn($cartItem) => $cartItem->convertCurrency());

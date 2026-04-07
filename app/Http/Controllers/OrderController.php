@@ -17,33 +17,72 @@ class OrderController extends Controller
 {
     public function store(OrderCreateRequest $request)
     {
-        $data = $request->only(['address_id', 'coupon_id']);
+        $data = $request->only(['address_id', 'coupon_id', 'shipping_method_id']);
 
-        $cart_items = CartItem::whereIn('id', $request->cart_item_ids)
+        $cartItems = CartItem::whereIn('id', $request->cart_item_ids)
             ->notOrdered()
             ->get();
 
-        if ($cart_items->isEmpty())
-            abort(403, "This cart has already been ordered.");
+        if ($cartItems->isEmpty()) {
+            abort(403, "These cart items have already been ordered.");
+        }
 
+        // 1. Validate address ownership
+        $address = Address::where('id', $data['address_id'])
+            ->where('user_id', auth('sanctum')->id())
+            ->firstOrFail();
+
+        // 2. Calculate shipping cost server-side
+        $shippingMethod = \App\Models\ShippingMethod::findOrFail($data['shipping_method_id']);
+
+        // Prepare items for calculator (each item needs weight_kg, quantity, price)
+        $items = $cartItems->map(fn($item) => [
+            'weight_kg' => $item->variant_snapshot['weight_kg'] ?? 0,
+            'quantity' => $item->count,
+            'price' => $item->unit_price, // effective price after promotions
+        ]);
+
+        $calculator = app(\App\Services\ShippingCalculatorService::class);
+        $calculator->setAddress($address)
+            ->setItems($items)
+            ->setMethod($shippingMethod);
+
+        try {
+            $shippingCost = $calculator->calculate();
+        } catch (\Exception $e) {
+            abort(422, "Selected shipping method is not available: " . $e->getMessage());
+        }
+
+        // 3. Build the order
         $order = new Order();
         $order->uuid = Str::uuid()->toString();
 
-        // Build order (totals, discounts, etc.)
-        $order = OrderHelpers::make_order($order, $cart_items, $data);
+        // Use the helper, passing shipping data
+        $order = OrderHelpers::make_order(
+            $order,
+            $cartItems,
+            $data,
+            $shippingCost,
+            $shippingMethod
+        );
 
-        // 🔹 Address snapshot
-        $address = Address::where('id', $data['address_id'])
-            ->where('user_id', auth()->id())
-            ->firstOrFail();
-
+        // Address snapshot (already existing)
         $order->address_snapshot = $address->snapshot();
+
+        // Additional shipping fields on order
+        $order->shipping_method_id = $shippingMethod->id;
+        $order->shipping_cost = $shippingCost;
+        $order->total_weight_kg = $calculator->getTotalWeight();
+        $order->shipping_method_snapshot = [
+            'name' => $shippingMethod->name,
+            'carrier' => $shippingMethod->carrier,
+            'min_delivery_days' => $shippingMethod->min_delivery_days,
+            'max_delivery_days' => $shippingMethod->max_delivery_days,
+        ];
 
         $order->save();
 
-        return [
-            'order' => $order
-        ];
+        return ['order' => $order];
     }
 
     public function update(OrderUpdateRequest $request, Order $order)
