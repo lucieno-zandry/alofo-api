@@ -70,12 +70,7 @@ class ProductFullUpdateRequest extends FormRequest
             }
             $merge['variants'] = $data['variants'];
         }
-
-        if ($this->slug) {
-            $slug = uuid_create() . '-' . $this->slug;
-            $merge['slug'] = $slug;
-        }
-
+        
         $this->merge($merge);
     }
 }
