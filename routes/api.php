@@ -300,7 +300,7 @@ Route::prefix('shipping-methods')
             Route::get('{shipping_method}', [ShippingMethodController::class, 'show']);
             Route::post('', [ShippingMethodController::class, 'store']);
             Route::delete('', [ShippingMethodController::class, 'destroy']);
-            Route::put('', [ShippingMethodController::class, 'update']);
+            Route::put('{shipping_method}', [ShippingMethodController::class, 'update']);
             Route::delete('{shipping_method}', [ShippingMethodController::class, 'destroy']);
 
             // Nested rates

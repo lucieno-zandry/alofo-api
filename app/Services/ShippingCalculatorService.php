@@ -15,11 +15,8 @@ class ShippingCalculatorService
     protected Collection $items; // each item has weight_kg, quantity, etc.
     protected float $subtotal = 0; // order subtotal (for free shipping threshold)
     protected float $totalWeight = 0;
-    
 
-    public function __construct(protected CurrencyService $currencyService)
-    {
-    }
+    public function __construct(protected CurrencyService $currencyService) {}
 
     public function setCurrencyService(CurrencyService $currencyService): self
     {
@@ -83,12 +80,35 @@ class ShippingCalculatorService
             return 0.0;
         }
 
+        // 1. Try to find a matching zone rate (from shipping_rates)
+        $zoneRate = $this->getMatchingZoneRate();
+        if ($zoneRate) {
+            return $this->calculateFromZoneRate($zoneRate);
+        }
+
+        // 2. Fall back to method's own calculation based on its calculation_type
         return match ($this->method->calculation_type) {
             'flat_rate' => $this->calculateFlatRate(),
             'weight_based' => $this->calculateWeightBased(),
             'api' => $this->calculateViaApi(),
             default => 0.0,
         };
+    }
+
+    /**
+     * Calculate cost from a matching shipping_rate row.
+     */
+    protected function calculateFromZoneRate(ShippingRate $rate): float
+    {
+        $cost = (float) $rate->rate;
+
+        // For weight_based methods, add extra per kg beyond min_weight
+        if ($this->method->calculation_type === 'weight_based' && $rate->rate_per_kg && $this->totalWeight > ($rate->min_weight_kg ?? 0)) {
+            $extraKg = $this->totalWeight - ($rate->min_weight_kg ?? 0);
+            $cost += $extraKg * (float) $rate->rate_per_kg;
+        }
+
+        return $cost;
     }
 
     /**
@@ -106,7 +126,7 @@ class ShippingCalculatorService
                 $cost = $this->calculate();
                 $available[] = [
                     'method' => $method,
-                    'cost' => $cost,
+                    'cost' => $this->currencyService->convert($cost),
                 ];
             } catch (\Exception $e) {
                 // Method not available for this address or other reason - skip
@@ -125,19 +145,7 @@ class ShippingCalculatorService
 
     protected function calculateWeightBased(): float
     {
-        // First try zone‑based rates from shipping_rates
-        $rate = $this->getMatchingZoneRate();
-
-        if ($rate) {
-            $cost = (float) $rate->rate;
-            if ($rate->rate_per_kg && $this->totalWeight > ($rate->min_weight_kg ?? 0)) {
-                $extraKg = $this->totalWeight - ($rate->min_weight_kg ?? 0);
-                $cost += $extraKg * (float) $rate->rate_per_kg;
-            }
-            return $cost;
-        }
-
-        // Fallback to method's rate_per_kg
+        // Fallback to method's rate_per_kg (no zone rate matched)
         if ($this->method->rate_per_kg) {
             return $this->totalWeight * (float) $this->method->rate_per_kg;
         }
@@ -190,7 +198,6 @@ class ShippingCalculatorService
     protected function getFedExRate(): float
     {
         // TODO: Implement real FedEx API call using config('services.fedex')
-        // For now return a mock rate based on weight
         Log::info('FedEx rate requested', ['weight' => $this->totalWeight, 'country' => $this->address->country]);
         return max(10.0, $this->totalWeight * 1.5);
     }

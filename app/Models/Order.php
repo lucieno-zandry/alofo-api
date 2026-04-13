@@ -78,6 +78,7 @@ class Order extends Model
         $this->setValuesToConvertedCurrency([
             'total' => $this->total,
             'coupon_discount_applied' => $this->coupon_discount_applied,
+            'shipping_cost' => $this->shipping_cost,
         ]);
 
         if ($this->coupon_snapshot) {

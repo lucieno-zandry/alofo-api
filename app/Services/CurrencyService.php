@@ -8,9 +8,22 @@ use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
+    public function __construct(protected bool $allowed) {}
+
+    public function isAllowed()
+    {
+        return $this->allowed;
+    }
+
     public function getUserCurrency(): ?string
     {
-        return auth('sanctum')->user()?->preferences?->currency;
+
+        if (!$this->allowed)
+            return $this->getFrom();
+
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+        return $user?->preferences?->currency;
     }
 
     public function getCurrencyFromRequest(): ?string
