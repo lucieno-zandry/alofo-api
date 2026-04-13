@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Services\CurrencyService;
+use App\Services\SettingService;
 use Illuminate\Support\ServiceProvider;
 
 use function Illuminate\Log\log;
@@ -21,7 +22,10 @@ class CurrencyServiceProvider extends ServiceProvider
             if ($origin === env('BACKOFFICE_FE_URL'))
                 $allowed = false;
 
-            return new CurrencyService($allowed);
+            return new CurrencyService(
+                $allowed,
+                app(SettingService::class)
+            );
         });
     }
     /**

@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\RefundRequestController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\TransactionController;
@@ -299,7 +300,6 @@ Route::prefix('shipping-methods')
             Route::get('', [ShippingMethodController::class, 'index']);
             Route::get('{shipping_method}', [ShippingMethodController::class, 'show']);
             Route::post('', [ShippingMethodController::class, 'store']);
-            Route::delete('', [ShippingMethodController::class, 'destroy']);
             Route::put('{shipping_method}', [ShippingMethodController::class, 'update']);
             Route::delete('{shipping_method}', [ShippingMethodController::class, 'destroy']);
 
@@ -314,4 +314,20 @@ Route::prefix('shipping-methods')
         });
 
         Route::post('available', [ShippingMethodController::class, 'getAvailableMethods']);
+    });
+
+
+Route::prefix('settings')
+    ->controller(SettingController::class)
+    ->group(function () {
+        Route::get('public', 'publicIndex');
+
+        Route::middleware('api.auth.approved')->group(function () {
+            Route::get('', 'index');
+            Route::get('{setting}', 'show');
+            Route::post('', 'store');
+            Route::put('{setting}', 'update');
+            Route::patch('{setting}', 'update');
+            Route::delete('{setting}', 'destroy');
+        });
     });

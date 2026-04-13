@@ -13,6 +13,8 @@ use App\Listeners\NotifyCustomerAboutClientCodeUsage;
 use App\Listeners\SendUserStatusNotification;
 use App\Listeners\UpdateClientCodeUsage;
 use App\Listeners\UseCoupon;
+use App\Models\Setting;
+use App\Observers\SettingObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
 class EventServiceProvider extends ServiceProvider
@@ -45,6 +47,6 @@ class EventServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Setting::observe(SettingObserver::class);
     }
 }

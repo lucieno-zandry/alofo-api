@@ -14,6 +14,7 @@
         "laravel/sanctum": "^4.0",
         "laravel/scout": "^10.24",
         "laravel/tinker": "^2.9",
+        "predis/predis": "^3.4",
         "typesense/typesense-php": "^6.0"
     },
     "require-dev": {

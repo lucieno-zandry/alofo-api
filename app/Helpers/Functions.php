@@ -6,9 +6,11 @@ use App\Enums\DiscountType;
 use App\Models\Address;
 use App\Models\Coupon;
 use App\Models\Image;
+use App\Models\Setting;
 use App\Services\CurrencyService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Cache;
 use Storage;
 
 class Functions
@@ -111,5 +113,13 @@ class Functions
         $redirect_url = $frontend_url . $order_uuid;
 
         return $redirect_url;
+    }
+
+    public static function setting(string $key, $default = null)
+    {
+        return Cache::tags('settings')->rememberForever("setting.{$key}", function () use ($key, $default) {
+            $setting = Setting::find($key);
+            return $setting ? $setting->value : $default;
+        });
     }
 }

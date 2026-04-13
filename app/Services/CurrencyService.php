@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 class CurrencyService
 {
-    public function __construct(protected bool $allowed) {}
+    public function __construct(protected bool $allowed, protected SettingService $setting) {}
 
     public function isAllowed()
     {
@@ -45,7 +45,7 @@ class CurrencyService
 
     public function getFrom(): string
     {
-        return 'EUR';
+        return $this->setting->get('currency', 'EUR');
     }
 
     protected function getTo(): string

@@ -21,10 +21,12 @@ return Application::configure(basePath: dirname(__DIR__))
             'approved'       => \App\Http\Middleware\EnsureUserIsApproved::class,
             'not-blocked'    => \App\Http\Middleware\EnsureUserIsNotBlocked::class,
             'not-suspended'  => \App\Http\Middleware\EnsureUserIsNotSuspended::class,
+            'not-in-maintenance-mode' => \App\Http\Middleware\EnsureAppIsNotInMaintenanceMode::class
         ]);
 
         $middleware->group('api.auth', [
             'custom.sanctum',
+            'not-in-maintenance-mode',
             'verified',
             'not-blocked',
             'not-suspended',
@@ -32,6 +34,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->group('api.auth.approved', [
             'custom.sanctum',
+            'not-in-maintenance-mode',
             'verified',
             'not-blocked',
             'not-suspended',
