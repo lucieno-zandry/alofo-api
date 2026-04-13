@@ -11,6 +11,7 @@ use App\Models\Address;
 use App\Models\CartItem;
 use App\Models\Order;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -109,6 +110,12 @@ class OrderController extends Controller
     public function index(Request $request)
     {
         $query = Order::query();
+
+        /** @var \App\Models\User */
+        $user = Auth::user();
+
+        if ($user?->can('viewAny', Order::class))
+            $query = $query->withTrashed();
 
         // Eager load relationships if requested (e.g., ?with=user,shipments)
         if ($request->has('with')) {
