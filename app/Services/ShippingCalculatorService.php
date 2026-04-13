@@ -15,6 +15,24 @@ class ShippingCalculatorService
     protected Collection $items; // each item has weight_kg, quantity, etc.
     protected float $subtotal = 0; // order subtotal (for free shipping threshold)
     protected float $totalWeight = 0;
+    
+
+    public function __construct(protected CurrencyService $currencyService)
+    {
+    }
+
+    public function setCurrencyService(CurrencyService $currencyService): self
+    {
+        $this->currencyService = $currencyService;
+        return $this;
+    }
+
+    protected function invertItemsCurrency(Collection $items)
+    {
+        return $items->map(function ($item) {
+            return $this->currencyService->invert($item['price']);
+        });
+    }
 
     /**
      * Set the shipping method to use.
@@ -40,7 +58,7 @@ class ShippingCalculatorService
      */
     public function setItems(Collection $items): self
     {
-        $this->items = $items;
+        $this->items = $this->invertItemsCurrency($items);
         $this->totalWeight = $items->sum(fn($item) => ($item['weight_kg'] ?? 0) * ($item['quantity'] ?? 1));
         $this->subtotal = $items->sum(fn($item) => ($item['price'] ?? 0) * ($item['quantity'] ?? 1));
         return $this;

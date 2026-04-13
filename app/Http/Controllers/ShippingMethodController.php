@@ -9,6 +9,7 @@ use App\Http\Requests\StoreShippingRateRequest;
 use App\Http\Requests\UpdateShippingRateRequest;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
+use App\Services\CurrencyService;
 use App\Services\ShippingCalculatorService;
 use Illuminate\Http\Request;
 
@@ -143,7 +144,11 @@ class ShippingMethodController extends Controller
         }
 
         $items = collect($request->cart_items);
-        $calculator->setAddress($address)->setItems($items);
+
+        $calculator
+            ->setAddress($address)
+            ->setItems($items);
+
         $available = $calculator->getAvailableMethods();
 
         return response()->json($available);

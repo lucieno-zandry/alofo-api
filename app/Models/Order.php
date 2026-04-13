@@ -25,6 +25,7 @@ class Order extends Model
     protected $casts = [
         'address_snapshot' => 'array',
         'coupon_snapshot'  => 'array',
+        'shipping_method_snapshot' => 'array'
     ];
 
     protected $fillable = [

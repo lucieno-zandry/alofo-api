@@ -28,4 +28,14 @@ class ShippingMethod extends Model
     {
         return $this->hasMany(ShippingRate::class);
     }
+
+    public function snapshot()
+    {
+        return [
+            'name' => $this->name,
+            'carrier' => $this->carrier,
+            'min_delivery_days' => $this->min_delivery_days,
+            'max_delivery_days' => $this->max_delivery_days,
+        ];
+    }
 }

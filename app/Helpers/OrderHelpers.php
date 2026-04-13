@@ -66,12 +66,7 @@ class OrderHelpers
 
         // Optionally store shipping method snapshot if passed
         if ($shippingMethod) {
-            $order->shipping_method_snapshot = [
-                'name' => $shippingMethod->name,
-                'carrier' => $shippingMethod->carrier,
-                'min_delivery_days' => $shippingMethod->min_delivery_days,
-                'max_delivery_days' => $shippingMethod->max_delivery_days,
-            ];
+            $order->shipping_method_snapshot = $shippingMethod->snapshot();
             $order->shipping_method_id = $shippingMethod->id;
             $order->shipping_cost = $shippingCost;
         }
