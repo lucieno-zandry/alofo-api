@@ -7,8 +7,6 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-use function Illuminate\Log\log;
-
 class EnsureAppIsNotInMaintenanceMode
 {
     /**
@@ -20,8 +18,6 @@ class EnsureAppIsNotInMaintenanceMode
     {
         /** @var \App\Models\User */
         $user = auth('sanctum')->user();
-
-        log("Middleware executed");
 
         if (!$user->roleIsAdmin()) {
             if (app(SettingService::class)->get('maintenance_mode', false)) {

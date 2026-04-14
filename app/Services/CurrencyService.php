@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
+use function Illuminate\Log\log;
+
 class CurrencyService
 {
     public function __construct(protected bool $allowed, protected SettingService $setting) {}
@@ -51,13 +53,16 @@ class CurrencyService
     protected function getTo(): string
     {
         $currency = $this->getCurrencyPreference();
+        $currency = strtoupper($currency);
         $rates = $this->getRates(); // cached, safe to call
 
-        if (!$currency || !isset($rates[strtoupper($currency)])) {
-            return $this->getFrom(); // fallback to EUR
+        if ($currency !== 'EUR') {
+            if (!$currency || !isset($rates[$currency])) {
+                return $this->getFrom(); // fallback to EUR
+            }
         }
 
-        return strtoupper($currency);
+        return $currency;
     }
 
     public function getRates()

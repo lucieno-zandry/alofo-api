@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Cache;
 
+use function Illuminate\Log\log;
+
 class SettingService
 {
     /**
@@ -16,9 +18,14 @@ class SettingService
      */
     function get(string $key, $default = null)
     {
-        return Cache::tags('settings')->rememberForever("setting.{$key}", function () use ($key, $default) {
+        
+        $value = Cache::tags('settings')->rememberForever("setting.{$key}", function () use ($key, $default) {
             $setting = Setting::find($key);
             return $setting ? $setting->value : $default;
         });
+
+        // log($value);
+
+        return $value;
     }
 }
