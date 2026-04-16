@@ -51,6 +51,7 @@ class AuthController extends Controller
 
         $user->preferences()->create($preferences);
 
+
         // Increment client code uses and notify admins
         if ($client_code)
             ClientCodeUsed::dispatch($client_code, $user, 'attach');
@@ -174,7 +175,7 @@ class AuthController extends Controller
         $data = $request->validated();
         $client_code = $request->clientCode();
 
-        $user = User::find(auth()->id());
+        $user = User::find(auth('sanctum')->id());
 
         if ($request->hasFile('avatar_image') && $user->avatar_image)
             $user->avatar_image->delete();
@@ -212,7 +213,7 @@ class AuthController extends Controller
     {
         $user = User::with('avatar_image')
             ->withRelations()
-            ->find(auth()->id());
+            ->find(auth('sanctum')->id());
 
         $user->permissions = $user->getPermissions();
 
@@ -241,13 +242,14 @@ class AuthController extends Controller
         $code = $helpers->__get('code');
         $code?->delete();
 
-        $user = auth()->user();
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
         $user->markEmailAsVerified();
         $user->permissions = $user->getPermissions();
         $user->avatar_image; // Load avatar image relation
 
         return [
-            'user' => auth()->user()
+            'user' => $user
         ];
     }
 }

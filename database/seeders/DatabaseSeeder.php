@@ -12,7 +12,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
+        // User::factory(10)->create();
 
         // User::factory()->create([
         //     'name' => 'John Doe',
@@ -21,10 +21,10 @@ class DatabaseSeeder extends Seeder
         //     'approved_at' => now()
         // ]);
 
-        // $this->call(ProductSeeder::class);
-        // $this->call(CouponSeeder::class);
-        // $this->call(ClientCodeSeeder::class);
-        // $this->call(PromotionSeeder::class);
+        $this->call(ProductSeeder::class);
+        $this->call(CouponSeeder::class);
+        $this->call(ClientCodeSeeder::class);
+        $this->call(PromotionSeeder::class);
         $this->call(SettingSeeder::class);
     }
 }

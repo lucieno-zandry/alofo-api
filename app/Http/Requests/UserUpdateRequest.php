@@ -32,7 +32,6 @@ class UserUpdateRequest extends FormRequest
             'role' => [Rule::enum(UserRole::class)],
             'image' => ['nullable', 'image'],
             'client_code_id' => ['nullable', 'numeric', new CanBeUsedClientCode],
-            'approved_at' => ['nullable', 'date']
         ];
 
         return $rules;

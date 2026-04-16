@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -198,7 +199,12 @@ class User extends Authenticatable
 
     public function currentStatus(): ?UserStatus
     {
-        return $this->statuses()->latest()->first();
+        return $this->statuses()
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->latest('created_at')
+            ->first();
     }
 
     public function getStatusAttribute()
@@ -214,5 +220,33 @@ class User extends Authenticatable
     public function preferences()
     {
         return $this->hasOne(UserPreference::class, 'user_id');
+    }
+
+    /**
+     * Scope a query to only include users whose current status is in the given list.
+     *
+     * @param Builder $query
+     * @param array $statuses
+     * @return Builder
+     */
+    public function scopeWhereCurrentStatusIn(Builder $query, array $statuses): Builder
+    {
+        $statuses = array_intersect($statuses, ['approved', 'blocked', 'suspended', 'pending']);
+        if (empty($statuses)) {
+            return $query;
+        }
+
+        return $query->whereExists(function ($sub) use ($statuses) {
+            $sub->select(DB::raw(1))
+                ->from('user_statuses as us')
+                ->whereColumn('us.user_id', 'users.id')
+                ->whereIn('us.status', $statuses)
+                ->where(function ($exp) {
+                    $exp->whereNull('us.expires_at')
+                        ->orWhere('us.expires_at', '>', now());
+                })
+                ->orderByDesc('us.created_at')
+                ->limit(1);
+        });
     }
 }

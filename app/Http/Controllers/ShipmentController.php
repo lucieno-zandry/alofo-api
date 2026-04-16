@@ -18,42 +18,6 @@ use Illuminate\Support\Facades\Log;
 
 class ShipmentController extends Controller
 {
-    public function store(ShipmentCreateRequest $request): array
-    {
-        $data = $request->validated();
-
-        $shipment = Shipment::create($data);
-        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
-
-        $shipment->order?->user?->notify(new ShipmentStatusUpdated(
-            shipment: $shipment,
-            order: $shipment->order,
-            order_detail_url: $order_detail_url
-        ));
-
-        return [
-            'shipment' => $shipment
-        ];
-    }
-
-    public function update(ShipmentUpdateRequest $request, Shipment $shipment): array
-    {
-        $data = $request->validated();
-
-        $shipment->update($data);
-        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
-
-        $shipment->order?->user?->notify(new ShipmentStatusUpdated(
-            shipment: $shipment,
-            order: $shipment->order,
-            order_detail_url: $order_detail_url
-        ));
-
-        return [
-            'shipment' => $shipment
-        ];
-    }
-
     public function destroy(ShipmentDeleteRequest $request)
     {
         $shipment_ids = explode(',', $request->shipment_ids);
@@ -229,9 +193,10 @@ class ShipmentController extends Controller
     private function isBackwardTransition(ShipmentStatus $current, ShipmentStatus $new): bool
     {
         $order = [
-            ShipmentStatus::PROCESSING->value => 0,
-            ShipmentStatus::SHIPPED->value    => 1,
-            ShipmentStatus::DELIVERED->value  => 2,
+            ShipmentStatus::PENDING->value => 0,
+            ShipmentStatus::PROCESSING->value => 1,
+            ShipmentStatus::SHIPPED->value    => 2,
+            ShipmentStatus::DELIVERED->value  => 3,
         ];
 
         return $order[$new->value] < $order[$current->value];

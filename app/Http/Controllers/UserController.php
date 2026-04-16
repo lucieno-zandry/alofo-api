@@ -53,20 +53,22 @@ class UserController extends Controller
         ];
     }
 
-
+    /**
+     * List users with filtering, sorting, and pagination.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function index(Request $request)
     {
         // Allowed sort columns to prevent SQL injection
-        $allowedSorts = ['name', 'email', 'created_at', 'updated_at'];
+        $allowedSorts = ['id', 'name', 'email', 'created_at', 'updated_at'];
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
 
-        // Validate sort column
         if (!in_array($sortBy, $allowedSorts)) {
             $sortBy = 'created_at';
         }
-
-        // Validate sort order
         $sortOrder = in_array(strtolower($sortOrder), ['asc', 'desc']) ? $sortOrder : 'desc';
 
         // Start query with optional relations
@@ -85,6 +87,11 @@ class UserController extends Controller
             if ($role !== 'all') {
                 $query->where('role', $role);
             }
+        }
+
+        // Filter by current user status (blocked, suspended)
+        if ($request->has('status_in')) {
+            $query->whereCurrentStatusIn($request->input('status_in'));
         }
 
         // Apply sorting

@@ -6,6 +6,7 @@ use App\Http\Controllers\CartItemController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientCodeController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -86,15 +87,13 @@ Route::prefix('product')
 // Variants – read public, write requires full auth + approval
 Route::prefix('variant')
     ->controller(VariantController::class)
+    ->middleware('api.auth.approved')
     ->group(function () {
         Route::get('get/{id}', 'show');
         Route::get('all', 'index');
-
-        Route::middleware('api.auth.approved')->group(function () {
-            Route::post('create', 'store');
-            Route::put('update/{variant}', 'update');
-            Route::delete('delete', 'destroy');
-        });
+        Route::post('create', 'store');
+        Route::put('update/{variant}', 'update');
+        Route::delete('delete', 'destroy');
     });
 
 // Variant groups – read public, write requires full auth + approval
@@ -235,8 +234,6 @@ Route::prefix('shipment')
         Route::get('all', 'index');
 
         Route::middleware(EnsureUserIsApproved::class)->group(function () {
-            Route::post('create', 'store');
-            Route::put('update/{shipment}', 'update');
             Route::delete('delete', 'destroy');
             Route::post('bulk-update-shipment', 'bulkUpdateShipment');
         });
@@ -330,4 +327,13 @@ Route::prefix('settings')
             Route::patch('{setting}', 'update');
             Route::delete('{setting}', 'destroy');
         });
+    });
+
+
+Route::prefix('dashboard')
+    ->controller(DashboardController::class)
+    ->middleware('api.auth.approved')
+    ->group(function () {
+        Route::get('kpi', 'kpi');
+        Route::get('sales-trend', 'salesTrend');
     });

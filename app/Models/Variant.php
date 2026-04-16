@@ -237,4 +237,49 @@ class Variant extends Model
         $snapshot['price'] = app(CurrencyService::class)->convert($snapshot['price']);
         return $snapshot;
     }
+
+    public function scopeFilter(Builder $query, array $filters): void
+    {
+        // Product filter
+        if ($productId = $filters['product_id'] ?? null) {
+            $query->where('product_id', $productId);
+        }
+
+        // SKU partial match
+        if ($sku = $filters['sku'] ?? null) {
+            $query->where('sku', 'like', "%{$sku}%");
+        }
+
+        // Price range
+        if ($minPrice = $filters['min_price'] ?? null) {
+            $query->where('price', '>=', $minPrice);
+        }
+        if ($maxPrice = $filters['max_price'] ?? null) {
+            $query->where('price', '<=', $maxPrice);
+        }
+
+        // Stock range
+        if ($minStock = $filters['min_stock'] ?? null) {
+            $query->where('stock', '>=', $minStock);
+        }
+        if ($maxStock = $filters['max_stock'] ?? null) {
+            $query->where('stock', '<=', $maxStock);
+        }
+
+        // Low stock (stock < 5, can be configurable)
+        if (($filters['low_stock'] ?? false) === true) {
+            $threshold = 5; // or from settings
+            $query->where('stock', '<', $threshold);
+        }
+
+        // Global search (SKU or product title)
+        if ($search = $filters['search'] ?? null) {
+            $query->where(function (Builder $q) use ($search) {
+                $q->where('sku', 'like', "%{$search}%")
+                    ->orWhereHas('product', function (Builder $pq) use ($search) {
+                        $pq->where('title', 'like', "%{$search}%");
+                    });
+            });
+        }
+    }
 }

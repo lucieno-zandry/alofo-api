@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helpers\Functions;
 use App\Http\Requests\VariantCreateRequest;
 use App\Http\Requests\VariantDeleteRequest;
+use App\Http\Requests\VariantIndexRequest;
 use App\Http\Requests\VariantUpdateRequest;
 use App\Models\Variant;
 use Illuminate\Support\Facades\DB;
@@ -94,17 +95,35 @@ class VariantController extends Controller
         ];
     }
 
-    public function index()
+    /**
+     * List variants with filtering, sorting, and pagination.
+     *
+     * @param VariantIndexRequest $request
+     * @return JsonResponse
+     */
+    public function index(VariantIndexRequest $request)
     {
-        $variants = Variant::applyFilters()->get();
+        $perPage = $request->input('per_page', 15);
+        $sortBy = $request->input('sort_by', 'id');
+        $sortOrder = $request->input('sort_order', 'asc');
 
+        $query = Variant::withRelations();
+
+        // Apply filters
+        $query->filter($request->validated());
+
+        // Apply sorting
+        $query->orderBy($sortBy, $sortOrder);
+
+        // Paginate
+        $variants = $query->paginate($perPage);
+
+        // Transform each variant (e.g., currency conversion)
         foreach ($variants as $variant) {
-            $variant->convertCurrency();
+            $variant->convertCurrency(); // assume this method exists
         }
 
-        return [
-            'variants' => $variants
-        ];
+        return response()->json($variants);
     }
 
     public function show(int $id)

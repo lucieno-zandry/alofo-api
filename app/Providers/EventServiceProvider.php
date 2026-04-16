@@ -13,9 +13,14 @@ use App\Listeners\NotifyCustomerAboutClientCodeUsage;
 use App\Listeners\SendUserStatusNotification;
 use App\Listeners\UpdateClientCodeUsage;
 use App\Listeners\UseCoupon;
+use App\Models\Order;
 use App\Models\Setting;
+use App\Models\User;
+use App\Observers\OrderObserver;
 use App\Observers\SettingObserver;
+use App\Observers\UserObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Log;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -48,5 +53,10 @@ class EventServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Setting::observe(SettingObserver::class);
+        Order::observe(OrderObserver::class);
+
+        Log::debug('EventServiceProvider boot method called');
+        User::observe(UserObserver::class);
+        Log::debug('UserObserver registered');
     }
 }
