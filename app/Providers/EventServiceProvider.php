@@ -54,9 +54,6 @@ class EventServiceProvider extends ServiceProvider
     {
         Setting::observe(SettingObserver::class);
         Order::observe(OrderObserver::class);
-
-        Log::debug('EventServiceProvider boot method called');
         User::observe(UserObserver::class);
-        Log::debug('UserObserver registered');
     }
 }

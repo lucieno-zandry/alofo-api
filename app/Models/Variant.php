@@ -10,11 +10,13 @@ use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
 use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
+
+use function Illuminate\Log\log;
 
 class Variant extends Model
 {
@@ -179,7 +181,7 @@ class Variant extends Model
     public function scopeWithRelations(Builder $query)
     {
         if (request()->has('with')) {
-            $relations = explode(',', request('with'));
+            $relations = request('with');
 
             foreach ($relations as $relation) {
                 $query->with([
@@ -267,7 +269,7 @@ class Variant extends Model
         }
 
         // Low stock (stock < 5, can be configurable)
-        if (($filters['low_stock'] ?? false) === true) {
+        if (isset($filters['low_stock'])) {
             $threshold = 5; // or from settings
             $query->where('stock', '<', $threshold);
         }
