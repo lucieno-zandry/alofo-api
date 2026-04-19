@@ -21,7 +21,7 @@ class EnsureAppIsNotInMaintenanceMode
 
         if (!$user->roleIsAdmin()) {
             if (app(SettingService::class)->get('maintenance_mode', false)) {
-                return response()->json(['message' => 'App is in maintenance mode'], 403);
+                return response()->json(['message' => 'App is in maintenance mode', 'action' => 'MAINTENANCE_MODE_ON'], 403);
             }
         }
 
