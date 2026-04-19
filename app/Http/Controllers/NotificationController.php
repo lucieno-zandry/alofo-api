@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Notification;
 use Illuminate\Http\Request;
 
 class NotificationController extends Controller
@@ -9,13 +10,15 @@ class NotificationController extends Controller
     /**
      * Get all notifications for authenticated user
      */
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
+        $per_page = $request->get('per_page', 10);
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+        $query = Notification::where('notifiable_id', $user->id);
 
         return response()->json([
-            'notifications' => $user->notifications,
-            'unread' => $user->unreadNotifications,
+            'notifications' => $query->paginate($per_page),
             'unread_count' => $user->unreadNotifications->count(),
         ]);
     }
@@ -23,11 +26,17 @@ class NotificationController extends Controller
     /**
      * Get only unread notifications
      */
-    public function unread()
+    public function unread(Request $request)
     {
+        $per_page = $request->get('per_page', 10);
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+        $query = Notification::where('notifiable_id', $user->id);
+
+
         return response()->json([
-            'notifications' => auth()->user()->unreadNotifications,
-            'count' => auth()->user()->unreadNotifications->count(),
+            'notifications' => $query->paginate($per_page),
+            'count' => $user->unreadNotifications->count(),
         ]);
     }
 
@@ -36,7 +45,10 @@ class NotificationController extends Controller
      */
     public function markAsRead($id)
     {
-        $notification = auth()->user()->notifications()->findOrFail($id);
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+
+        $notification = $user->notifications()->findOrFail($id);
         $notification->markAsRead();
 
         return response()->json([
@@ -50,7 +62,10 @@ class NotificationController extends Controller
      */
     public function markAllAsRead()
     {
-        auth()->user()->unreadNotifications->markAsRead();
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+
+        $user->unreadNotifications->markAsRead();
 
         return response()->json([
             'message' => 'All notifications marked as read'
@@ -62,7 +77,10 @@ class NotificationController extends Controller
      */
     public function destroy($id)
     {
-        auth()->user()->notifications()->findOrFail($id)->delete();
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+
+        $user->notifications()->findOrFail($id)->delete();
 
         return response()->json([
             'message' => 'Notification deleted'
@@ -74,7 +92,10 @@ class NotificationController extends Controller
      */
     public function clearRead()
     {
-        auth()->user()->readNotifications()->delete();
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+
+        $user->readNotifications()->delete();
 
         return response()->json([
             'message' => 'Read notifications cleared'

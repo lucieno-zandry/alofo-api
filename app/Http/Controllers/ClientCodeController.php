@@ -52,8 +52,10 @@ class ClientCodeController extends Controller
         ];
     }
 
-    public function showById(ClientCode $client_code)
+    public function showById(int $id)
     {
+        $client_code = ClientCode::withRelations()->find($id);
+
         return [
             'client_code' => $client_code
         ];
@@ -113,7 +115,7 @@ class ClientCodeController extends Controller
     public function detachUser(ClientCodeUserDetachRequest $request, ClientCode $client_code)
     {
         $user = User::find($request->user_id);
-        $performedBy = auth()->user();
+        $performedBy = auth('sanctum')->user();
 
         $user->client_code_id = null;
         $user->save();

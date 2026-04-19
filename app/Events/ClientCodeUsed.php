@@ -19,7 +19,7 @@ class ClientCodeUsed
     /**
      * Create a new event instance.
      */
-    public function __construct(public ClientCode $client_code, public User $user, public string $action = 'attach', public ?User $performedBy)
+    public function __construct(public ClientCode $client_code, public User $user, public string $action = 'attach', public ?User $performedBy = null)
     {
         //
     }
