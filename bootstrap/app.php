@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthTokenFromCookie;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,7 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append([HandleCors::class]);
+        $middleware->append([
+            HandleCors::class,
+            AuthTokenFromCookie::class,
+            SetLocale::class,
+        ]);
+
         $middleware->alias([
             'custom.sanctum' => \App\Http\Middleware\CustomSanctumAuth::class,
             'verified'       => \App\Http\Middleware\EnsureEmailIsVerified::class,
@@ -40,9 +46,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'not-suspended',
             'approved',
         ]);
-    })
-    ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(SetLocale::class);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

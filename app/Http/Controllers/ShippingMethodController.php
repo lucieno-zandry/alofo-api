@@ -13,7 +13,7 @@ use App\Services\CurrencyService;
 use App\Services\ShippingCalculatorService;
 use Illuminate\Http\Request;
 
-use function Illuminate\Log\log;
+
 
 class ShippingMethodController extends Controller
 {

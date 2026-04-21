@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\DiscountType;
 use App\Helpers\Functions;
 use App\Helpers\ProductFullUpdateService;
 use App\Http\Requests\ProductCreateRequest;
@@ -18,7 +17,6 @@ use App\Services\CurrencyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {

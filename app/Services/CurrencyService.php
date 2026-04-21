@@ -4,9 +4,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Log;
-
-use function Illuminate\Log\log;
 
 class CurrencyService
 {
@@ -31,12 +28,13 @@ class CurrencyService
     public function getCurrencyFromRequest(): ?string
     {
         $currency = request()->header('X-Currency', $this->getFrom());
+
         return $currency;
     }
 
     public function getCurrencyPreference(): string
     {
-        return $this->getUserCurrency() ?? $this->getCurrencyFromRequest() ?? 'USD';
+        return $this->getUserCurrency() ?? $this->getCurrencyFromRequest();
     }
 
     public function isValidCurrency(string $currency): bool

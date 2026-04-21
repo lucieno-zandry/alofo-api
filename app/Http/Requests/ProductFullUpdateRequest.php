@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-use function Illuminate\Log\log;
+
 
 class ProductFullUpdateRequest extends FormRequest
 {

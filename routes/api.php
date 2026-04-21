@@ -33,6 +33,7 @@ Route::prefix('auth')
     ->group(function () {
         Route::post('register', 'register');
         Route::post('login', 'login');
+        Route::get('logout', 'logout')->middleware(CustomSanctumAuth::class);
 
         Route::prefix('password')->group(function () {
             Route::post('forgot', 'password_forgot');

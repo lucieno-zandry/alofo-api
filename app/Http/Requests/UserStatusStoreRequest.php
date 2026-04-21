@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Log;
+
 
 class UserStatusStoreRequest extends FormRequest
 {
@@ -12,7 +12,6 @@ class UserStatusStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        Log::debug($this->route('user'));
         return $this->user()->can('updateStatus', $this->route('user'));
     }
 

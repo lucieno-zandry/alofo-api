@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Services\CurrencyService;
 use DateInterval;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -60,10 +61,11 @@ class AuthController extends Controller
 
         $user->load('avatar_image'); // Load avatar image relation
 
-        return [
-            'token' => $user->createToken('device')->plainTextToken,
-            'auth' => $user,
-        ];
+        $token = $user->createToken('device')->plainTextToken;
+
+        return response()->json([
+            'auth' => $user
+        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
     }
 
     public function login(LoginRequest $request)
@@ -83,11 +85,11 @@ class AuthController extends Controller
         }
 
         $user->permissions = $user->getPermissions();
+        $token = $user->createToken('device')->plainTextToken;
 
-        return [
-            'token' => $user->createToken('device')->plainTextToken,
+        return response()->json([
             'auth' => $user
-        ];
+        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
     }
 
     public function email_info(Request $request)
@@ -120,7 +122,6 @@ class AuthController extends Controller
 
         $token_table->insert([
             'email' => $request->email,
-            'token' => $token,
         ]);
 
         $reset_url = Functions::get_frontend_url('PASSWORD_RESET_PATHNAME', $user->role) . $token;
@@ -164,10 +165,11 @@ class AuthController extends Controller
         //Delete used token
         $token_table->where('email', $user->email)->delete();
 
-        return [
-            'token' => $user->createToken('device')->plainTextToken,
-            'auth' => $user,
-        ];
+        $token = $user->createToken('device')->plainTextToken;
+
+        return response()->json([
+            'auth' => $user
+        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
     }
 
     public function update(AuthUserUpdateRequest $request)
@@ -251,5 +253,10 @@ class AuthController extends Controller
         return [
             'user' => $user
         ];
+    }
+
+    public function logout()
+    {
+        return response()->json(['message' => 'logged out'])->cookie('auth_token', "");
     }
 }

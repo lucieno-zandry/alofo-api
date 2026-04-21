@@ -6,7 +6,7 @@ use App\Models\Address;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
+
 
 class ShippingCalculatorService
 {

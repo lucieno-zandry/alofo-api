@@ -20,7 +20,7 @@ use App\Observers\OrderObserver;
 use App\Observers\SettingObserver;
 use App\Observers\UserObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Log;
+
 
 class EventServiceProvider extends ServiceProvider
 {
