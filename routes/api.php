@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientCodeController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LandingBlockController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -337,4 +338,20 @@ Route::prefix('dashboard')
     ->group(function () {
         Route::get('kpi', 'kpi');
         Route::get('sales-trend', 'salesTrend');
+    });
+
+Route::prefix('landing-blocks')
+    ->controller(LandingBlockController::class)
+    ->group(function () {
+        Route::get('public', 'publicIndex');
+
+        Route::middleware('api.auth.approved')->group(function () {
+            Route::get('', 'index');
+            Route::get('{landing_block}', 'show');
+            Route::post('', 'store');
+            Route::put('reorder', 'reorder');
+            Route::post('{landing_block}', 'update');
+            Route::patch('{landing_block}', 'update');
+            Route::delete('{landing_block}', 'destroy');
+        });
     });
