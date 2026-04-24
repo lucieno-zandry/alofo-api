@@ -25,4 +25,15 @@ class StoreLandingBlockRequest extends FormRequest
             'is_active' => 'nullable|boolean',
         ];
     }
+
+    public function prepareForValidation()
+    {
+        $content = $this->get('content');
+
+        if ($content && is_string($content)) {
+            $this->merge([
+                'content' => json_decode($content, true),
+            ]);
+        }
+    }
 }

@@ -7,6 +7,7 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ClientCodeController;
 use App\Http\Controllers\CouponController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LandingBlockController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OrderController;
@@ -353,5 +354,15 @@ Route::prefix('landing-blocks')
             Route::post('{landing_block}', 'update');
             Route::patch('{landing_block}', 'update');
             Route::delete('{landing_block}', 'destroy');
+        });
+    });
+
+
+Route::prefix('images')
+    ->controller(ImageController::class)
+    ->group(function () {
+        Route::middleware('api.auth')->group(function () {
+            Route::post('', 'store');
+            Route::delete('{image}', 'destroy');
         });
     });
