@@ -77,6 +77,23 @@ class LandingBlock extends Model
                         }
 
                         break;
+
+                    case 'featured_products':
+                        if ($value && isset($value['product_ids']) && is_array($value['product_ids'])) {
+                            $products = Product::with(['variants', 'category', 'images'])
+                                ->whereIn('id', $value['product_ids'])
+                                ->get()
+                                ->keyBy('id');
+
+                            $orderedProducts = [];
+                            foreach ($value['product_ids'] as $id) {
+                                if ($products->has($id)) {
+                                    $orderedProducts[] = $products->get($id);
+                                }
+                            }
+                            $value['products'] = $orderedProducts;
+                        }
+                        break;
                 }
 
                 return $value;
