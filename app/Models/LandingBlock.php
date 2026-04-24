@@ -26,6 +26,7 @@ class LandingBlock extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'display_order' => 'integer',
+        'content' => 'array',
     ];
 
     // Polymorphic relation to any model (Product, Variant, Category, AppImage, etc.)
