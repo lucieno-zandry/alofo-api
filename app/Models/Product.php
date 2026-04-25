@@ -115,4 +115,14 @@ class Product extends Model
             'main_image'  => $this->images->first()?->url ?? null,
         ];
     }
+
+    public function hydrateVariants()
+    {
+        $this->load([
+            'variants.variant_options',
+            'variant_groups.variant_options',
+        ]);
+
+        $this->convertCurrency();
+    }
 }

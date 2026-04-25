@@ -13,6 +13,7 @@ use App\Models\Variant;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+
 class LandingBlockController extends Controller
 {
     use AuthorizesRequests;
@@ -26,12 +27,14 @@ class LandingBlockController extends Controller
         switch ($block->block_type) {
             case 'hero':
                 if ($related instanceof Product) {
-                    $related->load([
-                        'variants.variant_options',
-                        'variant_groups.variant_options',
-                    ]);
+                    $related->hydrateVariants();
+                }
 
-                    $related->convertCurrency();
+                break;
+
+            case 'cta_banner':
+                if ($related instanceof Product) {
+                    $related->hydrateVariants();
                 }
                 break;
 
