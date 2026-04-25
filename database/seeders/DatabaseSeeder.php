@@ -26,5 +26,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ClientCodeSeeder::class);
         $this->call(PromotionSeeder::class);
         $this->call(SettingSeeder::class);
+        $this->call(ImageSeeder::class);
+        $this->call(LandingBlockSeeder::class);
+        $this->call(UserSeeder::class);
     }
 }

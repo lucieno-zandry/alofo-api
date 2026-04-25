@@ -9,6 +9,7 @@ use App\Traits\WithPagination;
 use App\Traits\WithRelationships;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Image extends Model
 {
@@ -46,7 +47,14 @@ class Image extends Model
 
     public function getUrlAttribute()
     {
-        return Storage::disk($this->disk)->url($this->path);
+        $path = $this->path;
+        
+        // If it's already an absolute URL (http/https), return it as is
+        if (Str::startsWith($path, 'http')) {
+            return $path;
+        }
+        
+        return Storage::disk($this->disk)->url($path);
     }
 
     public function products()

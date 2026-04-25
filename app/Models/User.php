@@ -203,7 +203,7 @@ class User extends Authenticatable
             ->where(function ($q) {
                 $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
             })
-            ->latest('created_at')
+            ->latest('id')
             ->first();
     }
 

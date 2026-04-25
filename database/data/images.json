@@ -1,0 +1,84 @@
+[
+    {
+        "type": "header",
+        "version": "5.2.1",
+        "comment": "Export to JSON plugin for PHPMyAdmin"
+    },
+    {
+        "type": "database",
+        "name": "alofo"
+    },
+    {
+        "type": "table",
+        "name": "images",
+        "database": "alofo",
+        "data": [
+            {
+                "id": "4",
+                "path": "https://iili.io/B687Nbp.webp",
+                "disk": "",
+                "mime_type": "image\/webp",
+                "size": "119884",
+                "width": "1074",
+                "height": "806",
+                "created_at": "2026-04-23 16:49:54",
+                "updated_at": "2026-04-23 16:49:54"
+            },
+            {
+                "id": "10",
+                "path": "https://iili.io/B68S2uR.webp",
+                "disk": "",
+                "mime_type": "image\/webp",
+                "size": "394184",
+                "width": "1931",
+                "height": "1087",
+                "created_at": "2026-04-24 14:10:03",
+                "updated_at": "2026-04-24 14:10:03"
+            },
+            {
+                "id": "11",
+                "path": "https://iili.io/B68SJyv.webp",
+                "disk": "",
+                "mime_type": "image\/webp",
+                "size": "304396",
+                "width": "3831",
+                "height": "2155",
+                "created_at": "2026-04-24 15:55:17",
+                "updated_at": "2026-04-24 15:55:17"
+            },
+            {
+                "id": "12",
+                "path": "https://iili.io/B68SH8J.webp",
+                "disk": "",
+                "mime_type": "image\/webp",
+                "size": "298592",
+                "width": "1123",
+                "height": "792",
+                "created_at": "2026-04-24 15:57:09",
+                "updated_at": "2026-04-24 15:57:09"
+            },
+            {
+                "id": "13",
+                "path": "https://iili.io/B687vst.webp",
+                "disk": "",
+                "mime_type": "image\/webp",
+                "size": "1074874",
+                "width": "5184",
+                "height": "3456",
+                "created_at": "2026-04-25 08:37:26",
+                "updated_at": "2026-04-25 08:37:26"
+            },
+            {
+                "id": "14",
+                "path": "https://iili.io/B687weR.jpg",
+                "disk": "",
+                "mime_type": "image\/jpeg",
+                "size": "224759",
+                "width": "1792",
+                "height": "1024",
+                "created_at": "2026-04-25 09:59:21",
+                "updated_at": "2026-04-25 09:59:21"
+            }
+        ]
+    }
+]

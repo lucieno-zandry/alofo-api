@@ -33,5 +33,35 @@ class SettingSeeder extends Seeder
             'description' => 'Default currency for the store.',
             'is_public' => true,
         ]);
+
+        Setting::create([
+            'key' => 'app_name',
+            'value' => 'Alofo',
+            'type' => 'string',
+            'group' => 'General',
+            'label' => 'App name',
+            'description' => 'Name of the application to display.',
+            'is_public' => true,
+        ]);
+
+        Setting::create([
+            'key' => 'contact_email',
+            'value' => 'support@alofo.com',
+            'type' => 'string',
+            'group' => 'General',
+            'label' => 'Contact Email',
+            'description' => 'Email that customers can contact.',
+            'is_public' => true,
+        ]);
+
+        Setting::create([
+            'key' => 'app_logo',
+            'value' => 'https://www.svgrepo.com/show/525334/eye.svg',
+            'type' => 'string',
+            'group' => 'General',
+            'label' => 'Application Logo URL',
+            'description' => 'The url of the logo of the application.',
+            'is_public' => true,
+        ]);
     }
 }
