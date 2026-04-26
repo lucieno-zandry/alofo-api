@@ -66,9 +66,24 @@ class User extends Authenticatable
         return $this->status?->status === 'approved';
     }
 
+    public function canUseNotifications(): bool
+    {
+        return $this->role !== 'guest';
+    }
+
+    public function canUsePreferences(): bool
+    {
+        return $this->role !== 'guest';
+    }
+
     public function canUseSpecialPrices()
     {
         return $this->client_code?->isUsable() ?? false;
+    }
+
+    public function canUseSettings()
+    {
+        return $this->role !== 'guest';
     }
 
     public function getPermissions(): ?array
@@ -77,6 +92,18 @@ class User extends Authenticatable
 
         if ($this->canUseSpecialPrices()) {
             $permissions['can_use_special_prices'] = true;
+        }
+
+        if ($this->canUseNotifications()) {
+            $permissions['can_use_notifications'] = true;
+        }
+
+        if ($this->canUsePreferences()) {
+            $permissions['can_use_preferences'] = true;
+        }
+
+        if ($this->canUseSettings()) {
+            $permissions['can_use_settings'] = true;
         }
 
         if (count($permissions) === 0)

@@ -192,9 +192,8 @@ Route::prefix('user/preferences')
         Route::put('', 'update');
     });
 
-// Address – requires authentication (email verified), but not approval (customers can manage addresses)
 Route::prefix('address')
-    ->middleware('api.auth')
+    ->middleware('guest.auth')
     ->controller(AddressController::class)
     ->group(function () {
         Route::post('create', 'store');
@@ -203,9 +202,9 @@ Route::prefix('address')
         Route::delete('delete', 'destroy');
     });
 
-// Cart – requires authentication (email verified), but not approval
+
 Route::prefix('cart')
-    ->middleware('api.auth')
+    ->middleware('guest.auth')
     ->controller(CartItemController::class)
     ->name('cart.')
     ->group(function () {

@@ -14,12 +14,15 @@ class NotifyAdminsAboutClientCodeUsage
         $admins = User::whereIn('role', ['admin', 'manager'])->get();
 
         if ($event->action === 'attach') {
+            /** @var \App\Models\User */
             foreach ($admins as $admin) {
-                $admin->notify(new ClientCodeAttached($event->user, $event->client_code, $event->performedBy ?? null));
+                if ($admin->hasBeenApproved())
+                    $admin->notify(new ClientCodeAttached($event->user, $event->client_code, $event->performedBy ?? null));
             }
         } else {
             foreach ($admins as $admin) {
-                $admin->notify(new ClientCodeDetached($event->user, $event->client_code, $event->performedBy ?? null));
+                if ($admin->hasBeenApproved())
+                    $admin->notify(new ClientCodeDetached($event->user, $event->client_code, $event->performedBy ?? null));
             }
         }
     }

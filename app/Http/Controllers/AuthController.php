@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\ClientCodeUsed;
+use App\Helpers\CartItemHelpers;
 use App\Helpers\EmailConfirmationHelpers;
 use App\Helpers\Functions;
 use App\Http\Requests\AuthUserUpdateRequest;
@@ -20,10 +21,76 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use Laravel\Sanctum\PersonalAccessToken;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class AuthController extends Controller
 {
+
+    /**
+     * Merge guest user data into the given real user and delete the guest.
+     *
+     * Called during registration or login when a `guest_token` cookie exists.
+     */
+    protected function mergeGuestIfNeeded(Request $request, User $realUser): void
+    {
+        if (!$request->hasCookie('guest_token')) {
+            return;
+        }
+
+        $token = $request->cookie('guest_token');
+        $tokenModel = PersonalAccessToken::findToken($token);
+
+        if (!$tokenModel) {
+            return;
+        }
+
+        $guestUser = $tokenModel->tokenable;
+
+        // Safety check: only merge actual guest accounts
+        if (!$guestUser || $guestUser->role !== 'guest') {
+            return;
+        }
+
+        DB::transaction(function () use ($guestUser, $realUser) {
+            // 1. Transfer cart items, merging duplicates
+            foreach ($guestUser->cart_items as $item) {
+                $existing = $realUser->cart_items()
+                    ->where('variant_id', $item->variant_id)
+                    ->first();
+
+                if ($existing) {
+                    CartItemHelpers::make_item(
+                        $existing,
+                        ['count' => $item->count],
+                    );
+
+                    $item->delete();
+                } else {
+                    // Reassign to real user
+                    $item->update(['user_id' => $realUser->id]);
+                }
+            }
+
+            // 2. Transfer addresses
+            $realHasDefault = $realUser->addresses()
+                ->where('is_default', true)
+                ->exists();
+
+            foreach ($guestUser->addresses as $address) {
+                // Avoid duplicate default flags
+                if ($realHasDefault) {
+                    $address->is_default = false;
+                }
+                $address->update(['user_id' => $realUser->id]);
+            }
+
+            // 3. Remove guest tokens and the guest user itself
+            $guestUser->tokens()->delete();
+            $guestUser->delete();
+        });
+    }
+
     public function register(RegisterRequest $request)
     {
         $data = $request->only('email', 'password', 'name', 'role', 'avatar_image', 'client_code_id');
@@ -41,6 +108,7 @@ class AuthController extends Controller
         }
 
         $user = User::create($data);
+        $this->mergeGuestIfNeeded($request, $user);
 
         // Create users preferences
         $preferences = [
@@ -63,14 +131,19 @@ class AuthController extends Controller
 
         $token = $user->createToken('device')->plainTextToken;
 
-        return response()->json([
+        $response = response()->json([
             'auth' => $user
-        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
+        ])
+            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->withoutCookie('guest_token');
+
+        return $response;
     }
 
     public function login(LoginRequest $request)
     {
         $user = User::with('avatar_image')->where('email', $request->email)->first();
+        $this->mergeGuestIfNeeded($request, $user);
 
         if (!Hash::check($request->password, $user->password)) {
             throw ValidationException::withMessages([
@@ -87,9 +160,13 @@ class AuthController extends Controller
         $user->permissions = $user->getPermissions();
         $token = $user->createToken('device')->plainTextToken;
 
-        return response()->json([
+        $response = response()->json([
             'auth' => $user
-        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
+        ])
+            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->withoutCookie('guest_token');
+
+        return $response;
     }
 
     public function email_info(Request $request)
@@ -157,6 +234,8 @@ class AuthController extends Controller
         if (!$user)
             throw HttpException::fromStatusCode(403, 'Forbidden');
 
+        $this->mergeGuestIfNeeded($request, $user);
+
         $user->password = $request->password;
         $user->save();
 
@@ -166,10 +245,13 @@ class AuthController extends Controller
         $token_table->where('email', $user->email)->delete();
 
         $token = $user->createToken('device')->plainTextToken;
-
-        return response()->json([
+        $response = response()->json([
             'auth' => $user
-        ])->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict');
+        ])
+            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->withoutCookie('guest_token');
+
+        return $response;
     }
 
     public function update(AuthUserUpdateRequest $request)
@@ -257,6 +339,13 @@ class AuthController extends Controller
 
     public function logout()
     {
-        return response()->json(['message' => 'logged out'])->cookie('auth_token', "");
+        /** @var \App\Models\User */
+        $user = Auth::user();
+
+        $user->currentAccessToken()->delete();
+
+        return response()
+            ->json(['message' => 'Logged out.'])
+            ->withoutCookie('auth_token');
     }
 }

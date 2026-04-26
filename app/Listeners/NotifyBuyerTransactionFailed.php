@@ -26,7 +26,10 @@ class NotifyBuyerTransactionFailed implements ShouldQueue
         $transaction = $event->transaction;
         $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
 
+        /** @var \App\Models\User */
         $user = $order->user;
-        $user->notify(new PaymentFailed($transaction, $order, $order_detail_url));
+        
+        if ($user->canUseNotifications())
+            $user->notify(new PaymentFailed($transaction, $order, $order_detail_url));
     }
 }

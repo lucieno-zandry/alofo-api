@@ -27,7 +27,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'approved'       => \App\Http\Middleware\EnsureUserIsApproved::class,
             'not-blocked'    => \App\Http\Middleware\EnsureUserIsNotBlocked::class,
             'not-suspended'  => \App\Http\Middleware\EnsureUserIsNotSuspended::class,
-            'not-in-maintenance-mode' => \App\Http\Middleware\EnsureAppIsNotInMaintenanceMode::class
+            'not-in-maintenance-mode' => \App\Http\Middleware\EnsureAppIsNotInMaintenanceMode::class,
+            'auto-authenticate-guest' => \App\Http\Middleware\AutoAuthenticateGuest::class,
         ]);
 
         $middleware->group('api.auth', [
@@ -45,6 +46,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'not-blocked',
             'not-suspended',
             'approved',
+        ]);
+
+        $middleware->group('guest.auth', [
+            'auto-authenticate-guest',
+            'not-in-maintenance-mode',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

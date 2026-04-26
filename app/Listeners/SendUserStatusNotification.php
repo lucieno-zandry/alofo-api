@@ -10,7 +10,11 @@ class SendUserStatusNotification implements ShouldQueue
 {
     public function handle(UserStatusUpdatedEvent $event)
     {
+        /** @var \App\Models\User */
         $user = $event->user;
+
+        if (!$user->canUseNotifications()) return;
+        
         $status = $event->userStatus;
 
         $message = "Your account status has been {$status->status}.";

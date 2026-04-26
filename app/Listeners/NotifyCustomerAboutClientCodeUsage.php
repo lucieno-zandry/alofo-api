@@ -10,10 +10,15 @@ class NotifyCustomerAboutClientCodeUsage
 {
     public function handle(ClientCodeUsed $event): void
     {
+        /** @var \App\Models\User */
+        $user = $event->user;
+        
+        if (!$user->canUseNotifications()) return;
+
         if ($event->action === 'attach') {
-            $event->user->notify(new ClientCodeAttached($event->user, $event->client_code));
+            $user->notify(new ClientCodeAttached($user, $event->client_code));
         } else {
-            $event->user->notify(new ClientCodeDetached($event->user, $event->client_code));
+            $user->notify(new ClientCodeDetached($user, $event->client_code));
         }
     }
 }
