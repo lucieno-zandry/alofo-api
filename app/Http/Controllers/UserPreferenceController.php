@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UpdateUserPreferenceRequest;
 use App\Models\UserPreference;
+use App\Services\CurrencyService;
+use App\Services\PreferenceService;
 use Illuminate\Http\JsonResponse;
 
 class UserPreferenceController extends Controller
@@ -13,19 +15,19 @@ class UserPreferenceController extends Controller
      */
     public function show(): JsonResponse
     {
-        $preferences = auth()->user()->preferences;
+        /** @var \App\Models\User | null */
+        $user = auth('sanctum')->user();
+        $preferences = app(PreferenceService::class)->toArray();
 
-        if (!$preferences) {
-            // Return defaults if record doesn't exist (shouldn't happen if we create on registration)
-            return response()->json([
-                'theme'    => 'system',
-                'language' => 'en',
-                'timezone' => 'UTC',
-                'currency' => 'USD',
-            ]);
+        if ($user && $user->preferences) {
+            $preferences = $user->preferences;
         }
 
-        return response()->json(["preferences" => $preferences]);
+        $response = response()
+            ->json($preferences);
+
+        return app(PreferenceService::class)
+            ->addToResponseCookie($response);
     }
 
     /**
@@ -33,16 +35,24 @@ class UserPreferenceController extends Controller
      */
     public function update(UpdateUserPreferenceRequest $request): JsonResponse
     {
-        $user = auth()->user();
-        $preferences = $user->preferences;
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
+        $data = $request->validated();
 
-        if (!$preferences) {
-            // Create if missing (fallback)
-            $preferences = $user->preferences()->create($request->validated());
-        } else {
-            $preferences->update($request->validated());
+        $preferences = app(PreferenceService::class)->setFromArray($data);
+
+        if ($user) {
+            if (!$user->$preferences) {
+                // Create if missing (fallback)
+                $user->preferences()->create($preferences->toArray());
+            } else {
+                $user->preferences()->update($request->validated());
+            }
         }
 
-        return response()->json(["preferences" => $preferences]);
+        $response = response()->json($preferences->toArray());
+
+        return $preferences
+            ->addToResponseCookie($response);
     }
 }

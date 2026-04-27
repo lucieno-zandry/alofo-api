@@ -11,7 +11,7 @@ class DashboardKpiRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = $this->user();
+        $user = $this->user('sanctum');
         return $user && $user->role === 'admin'; // or use a gate/permission
     }
 

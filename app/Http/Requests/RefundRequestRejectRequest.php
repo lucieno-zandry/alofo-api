@@ -13,7 +13,7 @@ class RefundRequestRejectRequest extends FormRequest
     public function authorize(): bool
     {
         // Only admins can reject refund requests
-        return $this->user() && $this->user()->roleIsAdmin();
+        return $this->user('sanctum') && $this->user('sanctum')->roleIsAdmin();
     }
 
     /**

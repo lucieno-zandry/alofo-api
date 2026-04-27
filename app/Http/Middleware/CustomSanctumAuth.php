@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use Exception;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Auth;
@@ -14,10 +15,12 @@ class CustomSanctumAuth
         Auth::shouldUse('sanctum');
 
         try {
-            Auth::guard('sanctum')->authenticate();
+            /** @var \App\Models\User */
+            $user = auth('sanctum')->user();
+            if (!$user || $user->roleIsGuest()) throw new Exception("Authentication required!");
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Forbidden',
+                'message' => $e->getMessage() ?? 'Forbidden',
                 'status'  => 403,
                 'action'  => 'AUTHENTICATE'
             ], 403);

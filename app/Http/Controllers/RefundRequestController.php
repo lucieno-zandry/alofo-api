@@ -40,13 +40,13 @@ class RefundRequestController extends Controller
             transaction: $transaction,
             amount: $refundRequest->amount,
             reason: $refundRequest->reason,
-            performedBy: auth()->id()
+            performedBy: auth('sanctum')->id()
         );
 
         $refundRequest->update([
             'status'       => 'approved',
             'admin_notes'  => $request->admin_notes,
-            'reviewed_by'  => auth()->id(),
+            'reviewed_by'  => auth('sanctum')->id(),
             'reviewed_at'  => now(),
         ]);
 
@@ -65,7 +65,7 @@ class RefundRequestController extends Controller
         $refundRequest->update([
             'status'       => 'rejected',
             'admin_notes'  => $request->admin_notes,
-            'reviewed_by'  => auth()->id(),
+            'reviewed_by'  => auth('sanctum')->id(),
             'reviewed_at'  => now(),
         ]);
 

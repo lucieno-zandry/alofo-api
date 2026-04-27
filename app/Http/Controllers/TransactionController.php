@@ -162,7 +162,7 @@ class TransactionController extends Controller
     public function store(TransactionCreateRequest $request)
     {
         $data = $request->validated();
-        $data['user_id'] = auth()->id();
+        $data['user_id'] = auth('sanctum')->id();
         $data['type']    = 'PAYMENT';
 
         $amount = $request->amount;
@@ -243,7 +243,7 @@ class TransactionController extends Controller
         foreach ($transactions as $t) {
             TransactionAuditLog::create([
                 'transaction_uuid' => $t->uuid,
-                'performed_by'     => auth()->id(),
+                'performed_by'     => auth('sanctum')->id(),
                 'action'           => 'soft_deleted',
                 'reason'           => $request->input('reason'),
                 'metadata'         => ['ip' => request()->ip()],
@@ -266,7 +266,7 @@ class TransactionController extends Controller
 
         TransactionAuditLog::create([
             'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'status_override',
             'old_value'        => $oldStatus,
             'new_value'        => $newStatus,
@@ -295,7 +295,7 @@ class TransactionController extends Controller
             transaction: $transaction,
             amount: $amount,
             reason: $request->reason,
-            performedBy: auth()->id()
+            performedBy: auth('sanctum')->id()
         );
 
         return [
@@ -320,7 +320,7 @@ class TransactionController extends Controller
 
         TransactionAuditLog::create([
             'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'notification_resent',
             'metadata'         => ['ip' => request()->ip(), 'status' => $transaction->status],
         ]);
@@ -340,12 +340,12 @@ class TransactionController extends Controller
             ->whereNull('reviewed_at')
             ->update([
                 'reviewed_at' => now(),
-                'reviewed_by' => auth()->id(),
+                'reviewed_by' => auth('sanctum')->id(),
             ]);
 
         $logs = collect($uuids)->map(fn($uuid) => [
             'transaction_uuid' => $uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'reviewed',
             'metadata'         => json_encode(['ip' => request()->ip()]),
             'created_at'       => now(),
@@ -448,7 +448,7 @@ class TransactionController extends Controller
     // -------------------------------------------------------------------------
     public function openDispute(Request $request, Transaction $transaction)
     {
-        if (!auth()->user()?->can('openDispute', $transaction)) return abort(403);
+        if (!auth('sanctum')->user()?->can('openDispute', $transaction)) return abort(403);
 
         $request->validate(['reason' => 'required|string|max:1000']);
 
@@ -460,7 +460,7 @@ class TransactionController extends Controller
 
         TransactionAuditLog::create([
             'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'dispute_opened',
             'reason'           => $request->reason,
             'metadata'         => ['ip' => request()->ip()],
@@ -469,7 +469,7 @@ class TransactionController extends Controller
         // Notify admins
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
-            $admin->notify(new DisputeOpened($transaction, auth()->user(), $request->reason));
+            $admin->notify(new DisputeOpened($transaction, auth('sanctum')->user(), $request->reason));
         }
 
         return ['transaction' => $transaction->fresh()];
@@ -489,7 +489,7 @@ class TransactionController extends Controller
 
         TransactionAuditLog::create([
             'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'dispute_resolved',
             'old_value'        => 'OPEN',
             'new_value'        => $request->outcome,
@@ -506,7 +506,7 @@ class TransactionController extends Controller
     {
         $refundRequest = RefundRequest::create([
             'uuid'              => Str::uuid()->toString(),
-            'user_id'           => auth()->id(),
+            'user_id'           => auth('sanctum')->id(),
             'transaction_uuid'  => $transaction->uuid,
             'order_uuid' => $transaction->order_uuid,
             'amount'            => $request->amount ?? $transaction->amount,
@@ -516,7 +516,7 @@ class TransactionController extends Controller
 
         $admins = User::where('role', 'admin')->get(); // adjust role check as needed
         foreach ($admins as $admin) {
-            $admin->notify(new RefundRequested($refundRequest, $transaction, auth()->user()));
+            $admin->notify(new RefundRequested($refundRequest, $transaction, auth('sanctum')->user()));
         }
 
         return response()->json(['refund_request' => $refundRequest], 201);
@@ -524,7 +524,7 @@ class TransactionController extends Controller
 
     public function cancelDispute(Request $request, Transaction $transaction)
     {
-        if (!auth()->user()->can('cancelDispute', $transaction)) return abort(403);
+        if (!auth('sanctum')->user()->can('cancelDispute', $transaction)) return abort(403);
 
         $transaction->update([
             'dispute_status'    => null,
@@ -534,7 +534,7 @@ class TransactionController extends Controller
 
         TransactionAuditLog::create([
             'transaction_uuid' => $transaction->uuid,
-            'performed_by'     => auth()->id(),
+            'performed_by'     => auth('sanctum')->id(),
             'action'           => 'dispute_cancelled',
             'reason'           => 'Customer cancelled',
             'metadata'         => ['ip' => request()->ip()],
@@ -542,7 +542,7 @@ class TransactionController extends Controller
 
         $admins = User::where('role', 'admin')->get();
         foreach ($admins as $admin) {
-            $admin->notify(new DisputeCancelled($transaction, auth()->user()));
+            $admin->notify(new DisputeCancelled($transaction, auth('sanctum')->user()));
         }
 
         return ['transaction' => $transaction->fresh()];

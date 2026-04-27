@@ -11,7 +11,7 @@ class TransactionOverrideStatusRequest extends FormRequest
     public function authorize(): bool
     {
         // Only admins can manually override a transaction status
-        return $this->user()->roleIsAdmin();
+        return $this->user('sanctum')->roleIsAdmin();
     }
 
     public function rules(): array

@@ -12,7 +12,7 @@ class UserStatusStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('updateStatus', $this->route('user'));
+        return $this->user('sanctum')->can('updateStatus', $this->route('user'));
     }
 
     /**
@@ -35,7 +35,7 @@ class UserStatusStoreRequest extends FormRequest
     {
         $this->merge([
             'user_id' => $this->route('user')->id,
-            'set_by' => $this->user()->id,
+            'set_by' => $this->user('sanctum')->id,
         ]);
     }
 }

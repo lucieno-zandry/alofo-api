@@ -12,7 +12,7 @@ class PromotionVariantAttachRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('attachVariant', Promotion::class);
+        return $this->user('sanctum')->can('attachVariant', Promotion::class);
     }
 
     /**

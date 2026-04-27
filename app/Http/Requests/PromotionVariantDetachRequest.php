@@ -12,7 +12,7 @@ class PromotionVariantDetachRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('detachVariant', Promotion::class);
+        return $this->user('sanctum')->can('detachVariant', Promotion::class);
     }
 
     /**

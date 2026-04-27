@@ -13,7 +13,7 @@ class TransactionBulkExportRequest extends FormRequest
     public function authorize(): bool
     {
         // Exports are restricted to admins and managers
-        return in_array($this->user()->role, ['admin', 'manager']);
+        return in_array($this->user('sanctum')->role, ['admin', 'manager']);
     }
 
     public function rules(): array

@@ -11,7 +11,7 @@ class VariantUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user('sanctum')->roleIsAdmin();
     }
 
     /**

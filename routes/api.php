@@ -25,6 +25,7 @@ use App\Http\Controllers\VariantGroupController;
 use App\Http\Controllers\VariantOptionController;
 use App\Http\Middleware\CustomSanctumAuth;
 use App\Http\Middleware\EnsureUserIsApproved;
+use App\Http\Middleware\SyncPreferences;
 use Illuminate\Support\Facades\Route;
 
 
@@ -185,7 +186,7 @@ Route::prefix('user')
     });
 
 Route::prefix('user/preferences')
-    ->middleware('api.auth')
+    ->withoutMiddleware(SyncPreferences::class)
     ->controller(UserPreferenceController::class)
     ->group(function () {
         Route::get('', 'show');

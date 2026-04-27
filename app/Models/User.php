@@ -86,6 +86,21 @@ class User extends Authenticatable
         return $this->role !== 'guest';
     }
 
+    public function canLogIn()
+    {
+        return $this->role === 'guest';
+    }
+
+    public function canUseOrder()
+    {
+        return $this->role !== 'guest';
+    }
+
+    public function roleIsGuest()
+    {
+        return $this->role === 'guest';
+    }
+
     public function getPermissions(): ?array
     {
         $permissions = [];
@@ -104,6 +119,14 @@ class User extends Authenticatable
 
         if ($this->canUseSettings()) {
             $permissions['can_use_settings'] = true;
+        }
+
+        if ($this->canLogIn()) {
+            $permissions['can_log_in'] = true;
+        }
+
+        if ($this->canUseOrder()) {
+            $permissions['can_use_order'] = true;
         }
 
         if (count($permissions) === 0)

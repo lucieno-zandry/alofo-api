@@ -82,7 +82,7 @@ class Variant extends Model
     /**
      * Get the effective price for the current user based on applicable promotions.
      *
-     * @param \App\Models\User|null $user If null, uses auth()->user()
+     * @param \App\Models\User|null $user If null, uses auth('sanctum')->user()
      * @return float
      */
     public function getEffectivePriceAttribute(): float

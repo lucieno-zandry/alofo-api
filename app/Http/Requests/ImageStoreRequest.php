@@ -12,7 +12,7 @@ class ImageStoreRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('store', Image::class);
+        return $this->user('sanctum')->can('store', Image::class);
     }
 
     /**

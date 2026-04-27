@@ -12,7 +12,7 @@ class PromotionDeleteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('destroy', Promotion::class);
+        return $this->user('sanctum')->can('destroy', Promotion::class);
     }
 
     /**

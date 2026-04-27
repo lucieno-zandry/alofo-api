@@ -32,6 +32,6 @@ class AddressCreateRequest extends FormRequest
 
     public function prepareForValidation()
     {
-        $this->merge(['user_id' => $this->user()->id]);
+        $this->merge(['user_id' => $this->user('sanctum')->id]);
     }
 }

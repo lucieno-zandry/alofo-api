@@ -93,51 +93,58 @@ class AuthController extends Controller
 
     public function register(RegisterRequest $request)
     {
-        $data = $request->only('email', 'password', 'name', 'role', 'avatar_image', 'client_code_id');
+        // --- Resolve guest user if one is already authenticated via the guest_token cookie ---
+        /** @var \App\Models\User | null */
+        $user = null;
+
+        if ($request->hasCookie('guest_token')) {
+            $tokenModel = PersonalAccessToken::findToken($request->cookie('guest_token'));
+            if ($tokenModel && $tokenModel->tokenable?->role === 'guest') {
+                $user = $tokenModel->tokenable;
+            }
+        }
+
+        $data = $request->only('email', 'password', 'name', 'role', 'client_code_id');
         $client_code = $request->clientCode();
 
+        // Avatar handling (unchanged)
         if ($request->hasFile('avatar_image')) {
-            $file = $request->file('avatar_image');
-
-            $image = Functions::store_uploaded_image(
-                $file,
-                'avatars/'
-            );
-
+            $image = Functions::store_uploaded_image($request->file('avatar_image'), 'avatars/');
             $data['avatar_image_id'] = $image->id;
         }
 
-        $user = User::create($data);
-        $this->mergeGuestIfNeeded($request, $user);
+        if ($user) {
+            $user->tokens()->delete();
+            $user->update($data);
+        } else {
+            $user = User::create($data);
+        }
 
-        // Create users preferences
-        $preferences = [
-            'theme'    => $request->input('preferred_theme', 'system'),
-            'language' => $request->input('preferred_language', 'en'),
-            'timezone' => $request->input('preferred_timezone', 'UTC'),
-            'currency' => $request->input('preferred_currency', app(CurrencyService::class)->getFrom()),
-        ];
+        // --- Common post‑registration steps ---
 
-        $user->preferences()->create($preferences);
+        // Preferences: create if not existing (guest users don't have them)
+        if (!$user->preferences) {
+            $user->preferences()->create([
+                'theme'    => $request->input('preferred_theme', 'system'),
+                'language' => $request->input('preferred_language', 'en'),
+                'timezone' => $request->input('preferred_timezone', 'UTC'),
+                'currency' => $request->input('preferred_currency', app(CurrencyService::class)->getFrom()),
+            ]);
+        }
 
-
-        // Increment client code uses and notify admins
-        if ($client_code)
+        // Client code event (if relevant)
+        if ($client_code) {
             ClientCodeUsed::dispatch($client_code, $user, 'attach');
+        }
 
         $user->permissions = $user->getPermissions();
-
-        $user->load('avatar_image'); // Load avatar image relation
+        $user->load('avatar_image');
 
         $token = $user->createToken('device')->plainTextToken;
 
-        $response = response()->json([
-            'auth' => $user
-        ])
+        return response()->json(['auth' => $user])
             ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
             ->withoutCookie('guest_token');
-
-        return $response;
     }
 
     public function login(LoginRequest $request)

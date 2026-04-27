@@ -14,7 +14,7 @@ class AddressController extends Controller
         $data = $request->validated();
 
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
 
         $address = Address::create($data);
 
@@ -29,7 +29,7 @@ class AddressController extends Controller
         $data = $request->validated();
 
         /** @var \App\Models\User $user */
-        $user = auth()->user();
+        $user = auth('sanctum')->user();
         $address->update($data);
 
         return [
@@ -41,7 +41,7 @@ class AddressController extends Controller
     public function index()
     {
         $addresses = Address::applyFilters()
-            ->where('user_id', auth()->id())
+            ->where('user_id', auth('sanctum')->id())
             ->get();
 
         return [

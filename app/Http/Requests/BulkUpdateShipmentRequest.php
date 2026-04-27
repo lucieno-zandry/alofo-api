@@ -11,7 +11,7 @@ class BulkUpdateShipmentRequest extends FormRequest
     public function authorize(): bool
     {
         // Check if user is admin or manager
-        return $this->user() && in_array($this->user()->role, ['admin', 'manager']);
+        return $this->user('sanctum') && in_array($this->user('sanctum')->role, ['admin', 'manager']);
     }
 
     public function rules(): array

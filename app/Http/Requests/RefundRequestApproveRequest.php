@@ -8,7 +8,7 @@ class RefundRequestApproveRequest extends FormRequest
 {
     public function authorize()
     {
-        return $this->user()->roleIsAdmin();
+        return $this->user('sanctum')->roleIsAdmin();
     }
 
     public function rules()

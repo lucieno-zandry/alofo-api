@@ -12,7 +12,7 @@ class TransactionRefundRequest extends FormRequest
     {
         // Only admins can initiate refunds
         // The transaction must be in SUCCESS status to be refundable
-        return $this->user()->roleIsAdmin()
+        return $this->user('sanctum')->roleIsAdmin()
             && $this->route('transaction')?->status === TransactionStatus::SUCCESS->value;
     }
 

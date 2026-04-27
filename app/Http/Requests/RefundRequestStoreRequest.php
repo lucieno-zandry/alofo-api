@@ -11,7 +11,7 @@ class RefundRequestStoreRequest extends FormRequest
     {
         $transaction = $this->route('transaction');
         // Must own the transaction and it must be in SUCCESS status
-        return $this->user()->can('requestRefund', $transaction);
+        return $this->user('sanctum')->can('requestRefund', $transaction);
     }
 
     public function rules()

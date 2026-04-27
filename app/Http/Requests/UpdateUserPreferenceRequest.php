@@ -9,8 +9,7 @@ class UpdateUserPreferenceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only the authenticated user can update their own preferences
-        return $this->user() !== null;
+        return true;
     }
 
     public function rules(): array

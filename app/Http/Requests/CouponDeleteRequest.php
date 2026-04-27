@@ -12,7 +12,7 @@ class CouponDeleteRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('destroy', Coupon::class);
+        return $this->user('sanctum')->can('destroy', Coupon::class);
     }
 
     /**

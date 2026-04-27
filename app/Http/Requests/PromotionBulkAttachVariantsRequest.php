@@ -16,7 +16,7 @@ class PromotionBulkAttachVariantsRequest extends FormRequest
         $promotion = $this->route('promotion');
 
         // Ensure promotion exists and user has permission to update it
-        return $promotion && $this->user()->can('update', $promotion);
+        return $promotion && $this->user('sanctum')->can('update', $promotion);
     }
 
     /**

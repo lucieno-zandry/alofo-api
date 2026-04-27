@@ -16,11 +16,12 @@ class EnsureAppIsNotInMaintenanceMode
      */
     public function handle(Request $request, Closure $next): Response
     {
-        /** @var \App\Models\User */
-        $user = auth('sanctum')->user();
 
-        if (!$user->roleIsAdmin()) {
-            if (app(SettingService::class)->get('maintenance_mode', false)) {
+        if (app(SettingService::class)->get('maintenance_mode', false)) {
+            /** @var \App\Models\User */
+            $user = auth('sanctum')->user();
+            
+            if ($user && !$user->roleIsAdmin()) {
                 return response()->json(['message' => 'App is in maintenance mode', 'action' => 'MAINTENANCE_MODE_ON'], 403);
             }
         }

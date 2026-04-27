@@ -8,7 +8,7 @@ class StoreShippingMethodRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->roleIsAdmin(); // adjust as needed
+        return $this->user('sanctum')?->roleIsAdmin(); // adjust as needed
     }
 
     public function rules(): array

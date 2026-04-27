@@ -18,7 +18,7 @@ class RegisterRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return !$this->user();
+        return true;
     }
 
     /**

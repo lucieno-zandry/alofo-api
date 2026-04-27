@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AuthTokenFromCookie;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\SyncPreferences;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
             HandleCors::class,
             AuthTokenFromCookie::class,
             SetLocale::class,
+            SyncPreferences::class,
         ]);
 
         $middleware->alias([
@@ -49,8 +51,8 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->group('guest.auth', [
-            'auto-authenticate-guest',
             'not-in-maintenance-mode',
+            'auto-authenticate-guest',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

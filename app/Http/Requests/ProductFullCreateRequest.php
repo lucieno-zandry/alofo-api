@@ -12,7 +12,7 @@ class ProductFullCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', Product::class);
+        return $this->user('sanctum')->can('create', Product::class);
     }
 
     /**

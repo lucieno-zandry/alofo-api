@@ -14,7 +14,7 @@ class PromotionCreateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return $this->user()->can('create', Promotion::class);
+        return $this->user('sanctum')->can('create', Promotion::class);
     }
 
     /**
