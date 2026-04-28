@@ -16,7 +16,6 @@ class PreferenceService
     public function __construct()
     {
         $this->currency = app(CurrencyService::class)->getCurrencyPreference();
-        Log::debug(request()->cookie('currency'));
         $this->theme = request()->cookie('theme', 'system');
         $this->language = request()->cookie('lang', 'en');
         $this->timezone = request()->cookie('timezone', 'UTC');

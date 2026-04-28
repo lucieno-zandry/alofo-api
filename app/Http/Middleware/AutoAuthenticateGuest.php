@@ -39,10 +39,8 @@ class AutoAuthenticateGuest
         $response = $next($request);
 
         $response
-            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
-            ->cookie('guest_token', $token, 60, '/', null, true, true, false, 'Strict')
-            ->header('Location', '')
-            ->setStatusCode(302);
+            ->cookie('auth_token', $token, 60)
+            ->cookie('guest_token', $token, 60);
 
         return $response;
     }

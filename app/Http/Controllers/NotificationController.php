@@ -15,7 +15,7 @@ class NotificationController extends Controller
         $per_page = $request->get('per_page', 10);
         /** @var \App\Models\User */
         $user = auth('sanctum')->user();
-        $query = Notification::where('notifiable_id', $user->id);
+        $query = Notification::where('notifiable_id', $user->id)->latest('created_at');
 
         return response()->json([
             'notifications' => $query->paginate($per_page),

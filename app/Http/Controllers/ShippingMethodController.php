@@ -129,18 +129,29 @@ class ShippingMethodController extends Controller
     public function getAvailableMethods(Request $request, ShippingCalculatorService $calculator)
     {
         $request->validate([
-            'address_id' => 'required|exists:addresses,id',
+            'address_id' => 'exists:addresses,id',
             'cart_items' => 'required|array',
             'cart_items.*.weight_kg' => 'nullable|numeric|min:0',
             'cart_items.*.quantity' => 'required|integer|min:1',
             'cart_items.*.price' => 'nullable|numeric|min:0',
+            'country' => 'string',
+            'city' => 'string',
         ]);
 
-        $address = \App\Models\Address::findOrFail($request->address_id);
+        $address = null;
 
-        // Ensure address belongs to authenticated user
-        if ($address->user_id !== auth('sanctum')->id()) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if ($request->address_id) {
+            $address = \App\Models\Address::findOrFail($request->address_id);
+
+            // Ensure address belongs to authenticated user
+            if ($address->user_id !== auth('sanctum')->id()) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+        } else {
+            $address = new \App\Models\Address([
+                'country' => $request->get('country', 'FR'),  // e.g., 'FR'
+                'city'    => $request->get('city', 'Paris'),     // e.g., 'Paris'
+            ]);
         }
 
         $items = collect($request->cart_items);

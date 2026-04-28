@@ -143,7 +143,7 @@ class AuthController extends Controller
         $token = $user->createToken('device')->plainTextToken;
 
         return response()->json(['auth' => $user])
-            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->cookie('auth_token', $token, 60)
             ->withoutCookie('guest_token');
     }
 
@@ -170,7 +170,7 @@ class AuthController extends Controller
         $response = response()->json([
             'auth' => $user
         ])
-            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->cookie('auth_token', $token, 60)
             ->withoutCookie('guest_token');
 
         return $response;
@@ -255,7 +255,7 @@ class AuthController extends Controller
         $response = response()->json([
             'auth' => $user
         ])
-            ->cookie('auth_token', $token, 60, '/', null, true, true, false, 'Strict')
+            ->cookie('auth_token', $token, 60)
             ->withoutCookie('guest_token');
 
         return $response;

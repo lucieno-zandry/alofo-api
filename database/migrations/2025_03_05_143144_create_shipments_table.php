@@ -18,9 +18,6 @@ return new class extends Migration {
             $table->json('data')->nullable();
             $table->foreignUuid('order_uuid')->constrained('orders', 'uuid')->cascadeOnDelete();
             $table->boolean('is_active')->default(true);
-
-            $table->unique(['order_uuid', 'is_active'], 'unique_active_per_order')
-                ->where('is_active', true);
         });
     }
 

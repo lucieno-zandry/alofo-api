@@ -132,7 +132,7 @@ class TransactionController extends Controller
         $transactions = $query->paginate($perPage)->appends($request->query());
 
         /** @var \App\Models\Transaction */
-        foreach($transactions as $transaction)
+        foreach ($transactions as $transaction)
             $transaction->convertCurrency();
 
         return ['transactions' => $transactions];
@@ -173,7 +173,7 @@ class TransactionController extends Controller
 
         $token        = request()->header('Authorization');
         $redirect_url = Functions::get_order_detail_page_url($request->order_uuid);
-        $payment_url  = "http://127.0.0.1:5500/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
+        $payment_url  = env('PAYMENT_HOST') . "/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
 
         $data['payment_url'] = urlencode($payment_url);
 

@@ -109,19 +109,13 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = Order::query();
+        $query = Order::withRelations()->query();
 
         /** @var \App\Models\User */
         $user = Auth::user();
 
         if ($user?->can('viewAny', Order::class))
             $query = $query->withTrashed();
-
-        // Eager load relationships if requested (e.g., ?with=user,shipments)
-        if ($request->has('with')) {
-            $relations = explode(',', $request->with);
-            $query->with($relations);
-        }
 
         // Apply customer filter (if role is customer)
         $query->customerFilterable();
