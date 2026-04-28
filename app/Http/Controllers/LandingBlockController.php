@@ -45,7 +45,19 @@ class LandingBlockController extends Controller
 
     public function publicIndex(Request $request): JsonResponse
     {
-        $blocks = LandingBlock::with(['landing_able', 'image'])
+        $filters = $request->validate([
+            'landing_able_type' => 'string',
+            'landing_able_id' => 'numeric'
+        ]);
+
+        $query = LandingBlock::with(['landing_able', 'image']);
+
+        if (!empty($filters))
+            foreach ($filters as $key => $value) {
+                $query->where($key, $value);
+            }
+
+        $blocks = $query
             ->where('is_active', true)
             ->orderBy('display_order')
             ->get();

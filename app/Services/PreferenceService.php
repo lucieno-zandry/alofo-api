@@ -8,10 +8,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 class PreferenceService
 {
-    protected $currency;
-    protected $theme;
-    protected $timezone;
-    protected $language;
+    protected string $currency;
+    protected string $theme;
+    protected string $timezone;
+    protected string $language;
 
     public function __construct()
     {
@@ -21,7 +21,7 @@ class PreferenceService
         $this->timezone = request()->cookie('timezone', 'UTC');
     }
 
-    function set(string $name, $value): self
+    function set(string $name, string $value): self
     {
         $this->$name = $value;
         return $this;

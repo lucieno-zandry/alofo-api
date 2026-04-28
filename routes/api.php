@@ -191,6 +191,7 @@ Route::prefix('user/preferences')
     ->group(function () {
         Route::get('', 'show');
         Route::put('', 'update');
+        Route::get('geolocation', 'geolocate');
     });
 
 Route::prefix('address')
@@ -226,6 +227,7 @@ Route::prefix('order')
         Route::post('create', 'store');
         Route::delete('delete', 'destroy');
         Route::post('create-from-variant', 'create_from_variant');
+        Route::post('checkout', 'checkout');
     });
 
 // Shipments – requires authentication (email verified); write actions (create, update, delete) also require approval

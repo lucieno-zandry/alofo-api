@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\Functions;
 use App\Helpers\OrderHelpers;
+use App\Http\Requests\OrderCheckoutRequest;
 use App\Http\Requests\OrderCreateRequest;
 use App\Http\Requests\OrderDeleteRequest;
 use App\Http\Requests\OrderUpdateRequest;
@@ -198,5 +199,14 @@ class OrderController extends Controller
         return [
             'order' => $order
         ];
+    }
+
+    public function checkout(OrderCheckoutRequest $request)
+    {
+        $cart_items_ids = $request->validated('cart_items_ids');
+        
+        return response()
+            ->json()
+            ->cookie('cart_items_ids', implode(",", $cart_items_ids));
     }
 }

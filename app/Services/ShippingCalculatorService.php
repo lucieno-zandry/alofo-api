@@ -6,6 +6,7 @@ use App\Models\Address;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class ShippingCalculatorService
@@ -214,5 +215,63 @@ class ShippingCalculatorService
     public function getTotalWeight(): float
     {
         return $this->totalWeight;
+    }
+
+    public function geolocateip(string $ip): array
+    {
+        $token = env('FIND_IP_API_KEY');
+
+        if (!$token) {
+            return ['error' => 'API key not configured'];
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false) {
+            return ['error' => 'Cannot geolocate private IP'];
+        }
+
+        $language = app(PreferenceService::class)->get('language') ?? 'en';
+        $url = "https://api.findip.net/{$ip}/?token={$token}";
+        $data = null;
+
+        try {
+            $response = Http::timeout(5)->get($url);
+
+            if (!$response->successful()) {
+                return ['error' => 'Unable to geolocate IP'];
+            }
+
+            $data = $response->json();
+
+            if (!$data || !isset($data['country'])) {
+                return ['error' => 'Invalid geolocation data'];
+            }
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+            return ['error' => 'Geolocation service unavailable'];
+        }
+
+        $cityName = $data['city']['names'][$language]
+            ?? $data['city']['names']['en']
+            ?? reset($data['city']['names'])
+            ?? null;
+
+        $countryName = $data['country']['names'][$language]
+            ?? $data['country']['names']['en']
+            ?? reset($data['country']['names'])
+            ?? null;
+
+        $countryCode = $data['country']['iso_code']
+            ?? $data['country']['code']
+            ?? $data['registered_country']['iso_code']
+            ?? $data['registered_country']['code']
+            ?? null;
+
+        return [
+            'country_code' => $countryCode,
+            'city_name'    => $cityName,
+            'country_name' => $countryName,
+            'latitude'     => $data['location']['latitude'] ?? null,
+            'longitude'    => $data['location']['longitude'] ?? null,
+        ];
     }
 }

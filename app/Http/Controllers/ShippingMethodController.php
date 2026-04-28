@@ -12,8 +12,7 @@ use App\Models\ShippingRate;
 use App\Services\CurrencyService;
 use App\Services\ShippingCalculatorService;
 use Illuminate\Http\Request;
-
-
+use Illuminate\Support\Facades\Log;
 
 class ShippingMethodController extends Controller
 {
@@ -134,11 +133,11 @@ class ShippingMethodController extends Controller
             'cart_items.*.weight_kg' => 'nullable|numeric|min:0',
             'cart_items.*.quantity' => 'required|integer|min:1',
             'cart_items.*.price' => 'nullable|numeric|min:0',
-            'country' => 'string',
-            'city' => 'string',
         ]);
 
         $address = null;
+        $methods = [];
+        $location = [];
 
         if ($request->address_id) {
             $address = \App\Models\Address::findOrFail($request->address_id);
@@ -147,11 +146,20 @@ class ShippingMethodController extends Controller
             if ($address->user_id !== auth('sanctum')->id()) {
                 return response()->json(['message' => 'Unauthorized'], 403);
             }
+
+            $location = [
+                'country' => $address->country,
+                'city' => $address->city,
+            ];
         } else {
-            $address = new \App\Models\Address([
-                'country' => $request->get('country', 'FR'),  // e.g., 'FR'
-                'city'    => $request->get('city', 'Paris'),     // e.g., 'Paris'
-            ]);
+            $geolocated = $calculator->geolocateip($request->ip());
+
+            $location = [
+                'country' => $geolocated['country_code'] ?? 'FR',  // e.g., 'FR'
+                'city'    => $geolocated['city_name'] ?? 'Paris',     // e.g., 'Paris'
+            ];
+
+            $address = new \App\Models\Address($location);
         }
 
         $items = collect($request->cart_items);
@@ -160,8 +168,9 @@ class ShippingMethodController extends Controller
             ->setAddress($address)
             ->setItems($items);
 
-        $available = $calculator->getAvailableMethods();
+        $methods['available'] = $calculator->getAvailableMethods();
+        $methods['location'] = $location;
 
-        return response()->json($available);
+        return response()->json($methods);
     }
 }

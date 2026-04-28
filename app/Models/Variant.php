@@ -15,12 +15,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
-
-
-
 class Variant extends Model
 {
-    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasEffectivePrice;
+    use HasFactory, WithPagination, WithOrdering, WithRelationships, DynamicConditionApplicable, HasEffectivePrice;
 
     protected $fillable = [
         'product_id',
@@ -140,7 +137,8 @@ class Variant extends Model
             return $this->promotions;
 
         return $this->promotions
-            ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user));
+            ->filter(fn($promo) => $this->isPromotionApplicable($promo, $user))
+            ->values();
     }
 
     /**
