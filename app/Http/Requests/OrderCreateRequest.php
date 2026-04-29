@@ -26,7 +26,7 @@ class OrderCreateRequest extends FormRequest
             'address_id' => ['required', 'exists:addresses,id'],
             'cart_item_ids' => ['required', 'array'],
             'cart_item_ids[*]' => ['numeric'],
-            'coupon_id' => ['nullable', 'exists:coupons,id', new UsableCoupon],
+            'coupon_id' => ['nullable', new UsableCoupon],
             'shipping_method_id' => ['required', 'exists:shipping_methods,id'],
         ];
     }

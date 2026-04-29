@@ -219,10 +219,22 @@ class OrderController extends Controller
         // Remove duplicates just in case
         $cartItemIds = array_values(array_unique($cartItemIds));
 
+        Log::debug($validated);
+
         if (!empty($cartItemIds)) {
-            return response()
+            $response = response()
                 ->json(['success' => true])
                 ->cookie('cart_items_ids', implode(',', $cartItemIds), 60);
+
+            if (isset($validated['coupon_code'])) {
+                $response = $response
+                    ->cookie('coupon_code', $validated['coupon_code'], 60);
+            } else {
+                $response = $response
+                    ->withoutCookie('coupon_code');
+            }
+
+            return $response;
         }
 
         return response()->json([

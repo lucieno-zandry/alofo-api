@@ -2,16 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Variant;
 use App\Rules\InStock;
+use App\Rules\UsableCoupon;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Log;
-use Override;
 
 class OrderCheckoutRequest extends FormRequest
 {
-    protected array $variantModels = [];
-
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -33,20 +29,8 @@ class OrderCheckoutRequest extends FormRequest
             'variants' =>  ['array'],
             'variants.*' => ['array'],
             'variants.*.variant_id' => ['numeric'],
-            'variants.*.count' => ['numeric', new InStock($this->variantModels)],
+            'variants.*.count' => ['numeric', new InStock()],
+            'coupon_code' => ['nullable', new UsableCoupon()],
         ];
-    }
-
-    public function prepareForValidation()
-    {
-        $ids = collect($this->input('variants', []))
-            ->pluck('variant_id')
-            ->filter()
-            ->unique();
-
-        $this->variantModels = Variant::whereIn('id', $ids)
-            ->get()
-            ->keyBy('id')
-            ->all();
     }
 }

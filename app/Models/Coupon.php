@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\DiscountType;
 use App\Services\CurrencyService;
-use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\HasEffectivePrice;
 use App\Traits\WithOrdering;
@@ -15,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, ApplyFilters, HasFactory, HasEffectivePrice;
+    use WithOrdering, WithPagination, WithRelationships, DynamicConditionApplicable, HasFactory, HasEffectivePrice;
 
     protected $fillable = [
         'code',
@@ -69,7 +68,20 @@ class Coupon extends Model
     {
         if ($snapshot['type'] === DiscountType::FIXED_AMOUNT->value)
             $snapshot['discount'] = app(CurrencyService::class)->convert($snapshot['discount']);
-        
+
         return $snapshot;
+    }
+
+    public static function fetch(int|string $code_or_id): ?self
+    {
+        $coupon = null;
+
+        if (is_string($code_or_id)) {
+            $coupon = Coupon::where('code', $code_or_id)->first();
+        } else {
+            $coupon = Coupon::find($code_or_id);
+        }
+
+        return $coupon;
     }
 }

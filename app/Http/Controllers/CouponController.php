@@ -38,11 +38,13 @@ class CouponController extends Controller
 
         if (!$coupon || !$coupon->is_active() || !$coupon->is_usable()) $coupon = null;
 
-        $coupon->convertCurrency();
+        $coupon?->convertCurrency();
 
-        return [
-            'coupon' => $coupon
-        ];
+        return response()
+            ->json([
+                'coupon' => $coupon
+            ])
+            ->cookie('coupon_code', $coupon?->code, 60);
     }
 
     public function showById(Coupon $coupon)
