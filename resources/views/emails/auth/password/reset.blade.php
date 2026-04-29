@@ -1,12 +1,12 @@
 <x-mail::message>
-Cliquez sur le lien ci-dessous pour réinitialiser votre mot de passe
+Cliquez sur le lien ci-dessous pour réinitialiser ou créer votre mot de passe
  
 <x-mail::panel>
     Vous pouvez ignorer cet email ci vous n'êtes pas l'auteur de cette action.
 </x-mail::panel>
 
 <x-mail::button :url="$reset_url">
-Réinitialiser le mot de passe
+Créer un nouveau mot de passe
 </x-mail::button>
 
 Merci,<br>

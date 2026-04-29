@@ -205,6 +205,7 @@ class AuthController extends Controller
         $token_table->where('email', $request->email)->delete();
 
         $token_table->insert([
+            'token' => $token,
             'email' => $request->email,
         ]);
 
@@ -266,7 +267,8 @@ class AuthController extends Controller
         $data = $request->validated();
         $client_code = $request->clientCode();
 
-        $user = User::find(auth('sanctum')->id());
+        /** @var \App\Models\User */
+        $user = auth('sanctum')->user();
 
         if ($request->hasFile('avatar_image') && $user->avatar_image)
             $user->avatar_image->delete();
@@ -283,8 +285,13 @@ class AuthController extends Controller
         }
 
         // Make the user verify it's email again if changed
-        if ($request->has('email') && $request->email !== $user->email)
+        if ($request->has('email') && $request->email !== $user->email) {
             $user->email_verified_at = null;
+
+            if ($user->roleIsGuest()) {
+                $user->role = 'client';
+            }
+        }
 
         // Increment client code uses if applicable
         if ($client_code && $user->client_code_id !== $client_code->id)
@@ -338,6 +345,10 @@ class AuthController extends Controller
         $user->markEmailAsVerified();
         $user->permissions = $user->getPermissions();
         $user->avatar_image; // Load avatar image relation
+
+        if ($user->roleIsCustomer() && !$user->hasBeenApproved()) {
+            $user->approve(set_by: null);
+        }
 
         return [
             'user' => $user

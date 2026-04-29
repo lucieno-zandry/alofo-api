@@ -5,6 +5,7 @@ namespace App\Helpers;
 use App\Models\CartItem;
 use App\Models\Variant;
 use App\Models\VariantOption;
+use Illuminate\Support\Facades\Log;
 
 class CartItemHelpers
 {
@@ -41,6 +42,9 @@ class CartItemHelpers
         // Compute effective price for the current user
         $effectivePrice =  $variant->effective_price;
         $basePrice = $variant->price;
+
+        $cartItem->product_id = $variant->product_id;
+        $cartItem->user_id = auth('sanctum')->id();
 
         // Get applied promotions (already filtered for user)
         $appliedPromotions = $variant->applied_promotions; // returns Collection of Promotion models

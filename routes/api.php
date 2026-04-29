@@ -23,6 +23,7 @@ use App\Http\Controllers\UserPreferenceController;
 use App\Http\Controllers\VariantController;
 use App\Http\Controllers\VariantGroupController;
 use App\Http\Controllers\VariantOptionController;
+use App\Http\Middleware\AutoAuthenticateGuest;
 use App\Http\Middleware\CustomSanctumAuth;
 use App\Http\Middleware\EnsureUserIsApproved;
 use App\Http\Middleware\SyncPreferences;
@@ -51,7 +52,7 @@ Route::prefix('auth')
 
         Route::prefix('user')
             ->group(function () {
-                Route::middleware(CustomSanctumAuth::class)->post('update', 'update');
+                Route::middleware(AutoAuthenticateGuest::class)->post('update', 'update');
                 Route::get('get', 'show')->middleware('auth:sanctum');
             });
     });

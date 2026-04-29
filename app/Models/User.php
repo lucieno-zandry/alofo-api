@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
+use App\Events\UserStatusUpdatedEvent;
 use App\Traits\ApplyFilters;
 use App\Traits\DynamicConditionApplicable;
 use App\Traits\WithOrdering;
@@ -19,7 +20,7 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, CanResetPassword, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use HasFactory, SoftDeletes, Notifiable, HasApiTokens, CanResetPassword, ApplyFilters;
 
     /**
      * The attributes that are mass assignable.
@@ -298,5 +299,24 @@ class User extends Authenticatable
                 ->orderByDesc('us.created_at')
                 ->limit(1);
         });
+    }
+
+    public function updateStatus(string $status, ?int $set_by)
+    {
+        $userStatus = UserStatus::create([
+            'user_id' => $this->id,
+            'status'  => $status,
+            'set_by'  => $set_by,
+        ]);
+
+        return $userStatus;
+    }
+
+    public function approve(?int $set_by): static
+    {
+        $status = $this->updateStatus(status: 'approved', set_by: $set_by);
+        UserStatusUpdatedEvent::dispatch($this, $status);
+
+        return $this;
     }
 }

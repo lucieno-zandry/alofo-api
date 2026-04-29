@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\CartItemHelpers;
 use App\Helpers\Functions;
 use App\Helpers\OrderHelpers;
 use App\Http\Requests\OrderCheckoutRequest;
@@ -13,6 +14,7 @@ use App\Models\CartItem;
 use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -203,10 +205,28 @@ class OrderController extends Controller
 
     public function checkout(OrderCheckoutRequest $request)
     {
-        $cart_items_ids = $request->validated('cart_items_ids');
-        
-        return response()
-            ->json()
-            ->cookie('cart_items_ids', implode(",", $cart_items_ids));
+        $validated = $request->validated();
+
+        $cartItemIds = $validated['cart_items_ids'] ?? [];
+
+        if (!empty($validated['variants'])) {
+            foreach ($validated['variants'] as $variantData) {
+                $cartItem = CartItemHelpers::make_item(new CartItem, $variantData);
+                $cartItemIds[] = $cartItem->id;
+            }
+        }
+
+        // Remove duplicates just in case
+        $cartItemIds = array_values(array_unique($cartItemIds));
+
+        if (!empty($cartItemIds)) {
+            return response()
+                ->json(['success' => true])
+                ->cookie('cart_items_ids', implode(',', $cartItemIds), 60);
+        }
+
+        return response()->json([
+            'message' => 'Failed to initiate checkout.'
+        ], 403);
     }
 }

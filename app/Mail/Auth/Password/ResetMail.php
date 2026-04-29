@@ -16,7 +16,7 @@ class ResetMail extends Mailable
     /**
      * Create a new message instance.
      */
-    public function __construct(protected $reset_url)
+    public function __construct(protected string $reset_url)
     {}
 
     /**
@@ -26,7 +26,7 @@ class ResetMail extends Mailable
     {
         return new Envelope(
             from: env('MAIL_FROM_ADDRESS'),
-            subject: 'Password Reset',
+            subject: 'Password Reset or Creation',
         );
     }
 

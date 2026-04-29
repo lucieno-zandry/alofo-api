@@ -32,7 +32,6 @@ class AuthUserUpdateRequest extends FormRequest
             'email' => ['email', 'unique:users'],
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
-            'role' => ['string'],
             'avatar_image' => [
                 'nullable',
                 'image',
@@ -42,9 +41,10 @@ class AuthUserUpdateRequest extends FormRequest
             'client_code_id' => ['nullable', 'numeric', $this->clientCodeRule],
         ];
 
-        if ($this->has('email') || $this->has('password')) {
-            $rules['current_password'] = ['required', 'current_password'];
-        }
+        if (!$this->user('sanctum')->roleIsGuest())
+            if ($this->has('email') || $this->has('password')) {
+                $rules['current_password'] = ['required', 'current_password'];
+            }
 
         return $rules;
     }
