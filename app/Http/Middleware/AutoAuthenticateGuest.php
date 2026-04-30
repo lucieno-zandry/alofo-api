@@ -39,8 +39,8 @@ class AutoAuthenticateGuest
         $response = $next($request);
 
         $response
-            ->cookie('auth_token', $token, 60)
-            ->cookie('guest_token', $token, 60);
+            ->cookie('auth_token', $token, 60 * 27 * 30)
+            ->cookie('guest_token', $token, 60 * 27 * 30);
 
         return $response;
     }

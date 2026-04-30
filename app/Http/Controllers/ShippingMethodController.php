@@ -7,6 +7,7 @@ use App\Http\Requests\StoreShippingMethodRequest;
 use App\Http\Requests\UpdateShippingMethodRequest;
 use App\Http\Requests\StoreShippingRateRequest;
 use App\Http\Requests\UpdateShippingRateRequest;
+use App\Models\Address;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
 use App\Services\CurrencyService;
@@ -127,20 +128,25 @@ class ShippingMethodController extends Controller
      */
     public function getAvailableMethods(Request $request, ShippingCalculatorService $calculator)
     {
-        $request->validate([
+        $validated = $request->validate([
             'address_id' => 'exists:addresses,id',
             'cart_items' => 'required|array',
             'cart_items.*.weight_kg' => 'nullable|numeric|min:0',
             'cart_items.*.quantity' => 'required|integer|min:1',
             'cart_items.*.price' => 'nullable|numeric|min:0',
+            'location' => 'nullable|array',
+            'location.country' => 'string|size:2',
+            'location.city' => 'string'
         ]);
 
         $address = null;
         $methods = [];
         $location = [];
 
+        Log::debug($validated);
+
         if ($request->address_id) {
-            $address = \App\Models\Address::findOrFail($request->address_id);
+            $address = Address::findOrFail($request->address_id);
 
             // Ensure address belongs to authenticated user
             if ($address->user_id !== auth('sanctum')->id()) {
@@ -151,6 +157,10 @@ class ShippingMethodController extends Controller
                 'country' => $address->country,
                 'city' => $address->city,
             ];
+        } else if (isset($validated['location'])) {
+            $location = $validated['location'];
+
+            $address = new Address($location);
         } else {
             $geolocated = $calculator->geolocateip($request->ip());
 
@@ -159,7 +169,7 @@ class ShippingMethodController extends Controller
                 'city'    => $geolocated['city_name'] ?? 'Paris',     // e.g., 'Paris'
             ];
 
-            $address = new \App\Models\Address($location);
+            $address = new Address($location);
         }
 
         $items = collect($request->cart_items);

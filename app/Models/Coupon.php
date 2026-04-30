@@ -46,9 +46,11 @@ class Coupon extends Model
 
     public function convertCurrency()
     {
-        if ($this?->type === DiscountType::FIXED_AMOUNT->value) {
+        if ($this->type === DiscountType::FIXED_AMOUNT->value) {
             $this->setValueToConvertedCurrency('discount', $this->discount);
         }
+
+        $this->setValueToConvertedCurrency('min_order_value', $this->min_order_value);
 
         return $this;
     }
@@ -66,8 +68,12 @@ class Coupon extends Model
 
     public function convertSnapshotCurrency(array $snapshot): array
     {
+        $service = app(CurrencyService::class);
+
         if ($snapshot['type'] === DiscountType::FIXED_AMOUNT->value)
-            $snapshot['discount'] = app(CurrencyService::class)->convert($snapshot['discount']);
+            $snapshot['discount'] = $service->convert($snapshot['discount']);
+
+        $snapshot['min_order_value'] = $service->convert($snapshot['min_order_value']);
 
         return $snapshot;
     }
