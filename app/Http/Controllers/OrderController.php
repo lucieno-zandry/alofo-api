@@ -12,6 +12,7 @@ use App\Http\Requests\OrderUpdateRequest;
 use App\Models\Address;
 use App\Models\CartItem;
 use App\Models\Order;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -21,14 +22,23 @@ class OrderController extends Controller
 {
     public function store(OrderCreateRequest $request)
     {
-        $data = $request->only(['address_id', 'coupon_id', 'shipping_method_id']);
+        $data = $request->only(['address_id', 'coupon_id', 'shipping_method_id', 'notes']);
 
-        $cartItems = CartItem::whereIn('id', $request->cart_item_ids)
+        /** @var Collection */
+        $cartItems = CartItem::with('variant')->whereIn('id', $request->cart_item_ids)
             ->notOrdered()
             ->get();
 
         if ($cartItems->isEmpty()) {
             abort(403, "These cart items have already been ordered.");
+        }
+
+        $stockVerified = $cartItems->every(function ($item) {
+            return $item->variant && $item->count <= $item->variant->stock;
+        });
+
+        if (!$stockVerified) {
+            abort(403, "Some of the products are out of stock!");
         }
 
         // 1. Validate address ownership
@@ -205,6 +215,7 @@ class OrderController extends Controller
 
     public function checkout(OrderCheckoutRequest $request)
     {
+        Log::debug('REQUEST');
         $validated = $request->validated();
 
         $cartItemIds = $validated['cart_items_ids'] ?? [];
@@ -218,8 +229,6 @@ class OrderController extends Controller
 
         // Remove duplicates just in case
         $cartItemIds = array_values(array_unique($cartItemIds));
-
-        Log::debug($validated);
 
         if (!empty($cartItemIds)) {
             $response = response()

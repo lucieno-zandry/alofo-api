@@ -63,5 +63,25 @@ class SettingSeeder extends Seeder
             'description' => 'The url of the logo of the application.',
             'is_public' => true,
         ]);
+
+        Setting::create([
+            'key' => 'default_country',
+            'value' => 'FR',
+            'type' => 'string',
+            'group' => 'Location and Delivery',
+            'label' => 'Default country',
+            'description' => 'Fallback to this country to search shipping methods available.',
+            'is_public' => true,
+        ]);
+
+        Setting::create([
+            'key' => 'default_city',
+            'value' => 'Paris',
+            'type' => 'string',
+            'group' => 'Location and Delivery',
+            'label' => 'Default City',
+            'description' => 'Fallback to this city to search shipping methods available.',
+            'is_public' => true,
+        ]);
     }
 }

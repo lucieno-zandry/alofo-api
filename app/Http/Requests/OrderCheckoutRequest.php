@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Rules\InStock;
 use App\Rules\UsableCoupon;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Log;
 
 class OrderCheckoutRequest extends FormRequest
 {

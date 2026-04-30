@@ -159,6 +159,7 @@ class TransactionController extends Controller
     // CREATE
     // -------------------------------------------------------------------------
 
+    // In the store method, replace the old 'method' handling:
     public function store(TransactionCreateRequest $request)
     {
         $data = $request->validated();
@@ -168,22 +169,22 @@ class TransactionController extends Controller
         $amount = $request->amount;
         $currency = app(CurrencyService::class)->getFrom();
 
-        $uuid        = Str::uuid()->toString();
+        $uuid = Str::uuid()->toString();
         $data['uuid'] = $uuid;
 
-        $token        = request()->header('Authorization');
+        $token = request()->header('Authorization');
         $redirect_url = Functions::get_order_detail_page_url($request->order_uuid);
-        $payment_url  = env('PAYMENT_HOST') . "/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
+        $payment_url = env('PAYMENT_HOST') . "/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
 
-        $data['payment_url'] = urlencode($payment_url);
-
-        // Extract a searchable reference from informations if present
+        // Extract searchable reference from informations if present
         if (!empty($data['informations']['reference'])) {
             $data['payment_reference'] = $data['informations']['reference'];
         }
 
+        $data['informations']['payment_url'] = urlencode($payment_url);
+
         $transaction = Transaction::create($data);
-        $transaction->payment_url = $payment_url;
+        $transaction->informations['payment_url'] = $payment_url;
 
         FailPendingTransaction::dispatch($transaction->uuid)->delay(now()->addMinutes(10));
 
@@ -191,6 +192,67 @@ class TransactionController extends Controller
         FailedPayment::dispatchIf($transaction->status === TransactionStatus::FAILED->value, $transaction->order, $transaction);
 
         return ['transaction' => $transaction];
+    }
+
+    // In the export method, adjust the CSV header and row data:
+    public function export(TransactionBulkExportRequest $request): StreamedResponse
+    {
+        $transactions = Transaction::applyFilters()
+            ->customerFilterable()
+            ->with(['user', 'order'])
+            ->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="transactions_' . now()->format('Y-m-d_His') . '.csv"',
+        ];
+
+        return response()->streamDownload(function () use ($transactions) {
+            $handle = fopen('php://output', 'w');
+
+            // Updated header row
+            fputcsv($handle, [
+                'ID',
+                'UUID',
+                'Type',
+                'Order UUID',
+                'User Name',
+                'User Email',
+                'Amount',
+                'Payment Method',
+                'Card Brand',
+                'Payment Method Label',
+                'Status',
+                'Payment Reference',
+                'Reviewed At',
+                'Dispute Status',
+                'Created At',
+                'Deleted At',
+            ]);
+
+            foreach ($transactions as $t) {
+                fputcsv($handle, [
+                    $t->id,
+                    $t->uuid,
+                    $t->type,
+                    $t->order_uuid,
+                    $t->user?->name,
+                    $t->user?->email,
+                    $t->amount,
+                    $t->payment_method,
+                    $t->card_brand,
+                    $t->payment_method_label,
+                    $t->status,
+                    $t->payment_reference,
+                    $t->reviewed_at,
+                    $t->dispute_status,
+                    $t->created_at,
+                    $t->deleted_at,
+                ]);
+            }
+
+            fclose($handle);
+        }, 'transactions.csv', $headers);
     }
 
     // -------------------------------------------------------------------------
@@ -359,62 +421,6 @@ class TransactionController extends Controller
     // -------------------------------------------------------------------------
     // EXPORT  (filtered CSV download)
     // -------------------------------------------------------------------------
-
-    public function export(TransactionBulkExportRequest $request): StreamedResponse
-    {
-        $transactions = Transaction::applyFilters()
-            ->customerFilterable()
-            ->with(['user', 'order'])
-            ->get();
-
-        $headers = [
-            'Content-Type'        => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="transactions_' . now()->format('Y-m-d_His') . '.csv"',
-        ];
-
-        return response()->streamDownload(function () use ($transactions) {
-            $handle = fopen('php://output', 'w');
-
-            // CSV header row
-            fputcsv($handle, [
-                'ID',
-                'UUID',
-                'Type',
-                'Order UUID',
-                'User Name',
-                'User Email',
-                'Amount',
-                'Method',
-                'Status',
-                'Payment Reference',
-                'Reviewed At',
-                'Dispute Status',
-                'Created At',
-                'Deleted At',
-            ]);
-
-            foreach ($transactions as $t) {
-                fputcsv($handle, [
-                    $t->id,
-                    $t->uuid,
-                    $t->type,
-                    $t->order_uuid,
-                    $t->user?->name,
-                    $t->user?->email,
-                    $t->amount,
-                    $t->method,
-                    $t->status,
-                    $t->payment_reference,
-                    $t->reviewed_at,
-                    $t->dispute_status,
-                    $t->created_at,
-                    $t->deleted_at,
-                ]);
-            }
-
-            fclose($handle);
-        }, 'transactions.csv', $headers);
-    }
 
     // -------------------------------------------------------------------------
     // WEBHOOK LOGS  (view raw gateway callbacks for a transaction)

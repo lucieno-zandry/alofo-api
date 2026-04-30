@@ -47,6 +47,11 @@ class CouponController extends Controller
             ->cookie('coupon_code', $coupon?->code, 60);
     }
 
+    public function unuse()
+    {
+        return response()->json()->withoutCookie('coupon_code');
+    }
+
     public function showById(Coupon $coupon)
     {
         $coupon->convertCurrency();

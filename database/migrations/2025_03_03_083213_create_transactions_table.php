@@ -12,33 +12,38 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::create('transactions', function (Blueprint $table) {
-            // $table->id();
             $table->uuid()->primary();
             $table->timestamps();
+
+            // Status and payload
             $table->enum('status', ['FAILED', 'PENDING', 'SUCCESS'])->default('PENDING');
             $table->json('informations')->nullable();
+
+            // Relationships
             $table->foreignIdFor(User::class);
             $table->foreignUuid('order_uuid');
             $table->softDeletes();
-            $table->string('method');
-            $table->text('payment_url')->nullable();
+
+            // Payment instrument details (new structure)
+            $table->string('payment_method');                  // card, paypal, apple_pay, etc.
+            $table->string('card_brand')->nullable();          // visa, mastercard, amex, … (only for cards)
+            $table->string('payment_method_label')->nullable(); // Human-friendly label, e.g., "Visa •••• 4242"
+
+            // Payment processing
             $table->float('amount')->default(0);
 
-            // Transaction type: PAYMENT (default), REFUND (linked to original), MANUAL (cash/admin-entered)
-            $table->enum('type', ['PAYMENT', 'REFUND', 'MANUAL'])
-                ->default('PAYMENT');
-
-            // Self-referential FK using uuid (your actual PK) — refund transactions point to the original
+            // Transaction type and self-referential linkage
+            $table->enum('type', ['PAYMENT', 'REFUND', 'MANUAL'])->default('PAYMENT');
             $table->string('parent_transaction_uuid')->nullable();
             $table->foreign('parent_transaction_uuid')
                 ->references('uuid')
                 ->on('transactions')
                 ->nullOnDelete();
 
-            // Extracted from `informations` JSON for indexed searching (backfill separately)
+            // Searchable reference (often from gateway)
             $table->string('payment_reference')->nullable();
 
-            // Admin review tracking (for bulk "mark as reviewed" feature)
+            // Admin review tracking
             $table->timestamp('reviewed_at')->nullable();
             $table->unsignedBigInteger('reviewed_by')->nullable();
             $table->foreign('reviewed_by')
@@ -46,7 +51,7 @@ return new class extends Migration {
                 ->on('users')
                 ->nullOnDelete();
 
-            // Optional free-text notes for manual overrides (e.g. "Confirmed via bank transfer")
+            // Notes for manual adjustments
             $table->text('notes')->nullable();
 
             // Dispute tracking
@@ -55,13 +60,15 @@ return new class extends Migration {
             $table->timestamp('dispute_resolved_at')->nullable();
             $table->text('dispute_reason')->nullable();
 
-            // --- Performance indexes ---
+            // Indexes for query speed
             $table->index('status');
-            $table->index('method');
+            $table->index('payment_method');
+            $table->index('card_brand');               // useful for analytics
             $table->index('type');
             $table->index('payment_reference');
             $table->index('reviewed_at');
             $table->index('dispute_status');
+
             // Composite indexes for common filter combinations
             $table->index(['user_id', 'status']);
             $table->index(['order_uuid', 'status']);

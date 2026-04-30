@@ -23,6 +23,7 @@ return new class extends Migration {
             $table->softDeletes();
             $table->json('address_snapshot');
             $table->json('coupon_snapshot')->nullable();
+            $table->text('notes');
         });
     }
 

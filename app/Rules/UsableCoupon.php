@@ -6,7 +6,6 @@ use App\Models\Coupon;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\DataAwareRule;
-use Illuminate\Support\Facades\Log;
 
 class UsableCoupon implements ValidationRule, DataAwareRule
 {
@@ -21,7 +20,6 @@ class UsableCoupon implements ValidationRule, DataAwareRule
 
     public function validate(string $attribute, mixed $value, Closure $fail): void
     {
-        Log::debug("WE REACHED HERE");
         // If already resolved (avoid duplicate queries)
         if (!$this->coupon) {
             $this->coupon = $this->resolveCoupon($attribute, $value);

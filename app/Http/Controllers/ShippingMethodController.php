@@ -10,10 +10,10 @@ use App\Http\Requests\UpdateShippingRateRequest;
 use App\Models\Address;
 use App\Models\ShippingMethod;
 use App\Models\ShippingRate;
-use App\Services\CurrencyService;
+use App\Services\SettingService;
 use App\Services\ShippingCalculatorService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+
 
 class ShippingMethodController extends Controller
 {
@@ -143,8 +143,6 @@ class ShippingMethodController extends Controller
         $methods = [];
         $location = [];
 
-        Log::debug($validated);
-
         if ($request->address_id) {
             $address = Address::findOrFail($request->address_id);
 
@@ -163,10 +161,11 @@ class ShippingMethodController extends Controller
             $address = new Address($location);
         } else {
             $geolocated = $calculator->geolocateip($request->ip());
+            $settings = app(SettingService::class);
 
             $location = [
-                'country' => $geolocated['country_code'] ?? 'FR',  // e.g., 'FR'
-                'city'    => $geolocated['city_name'] ?? 'Paris',     // e.g., 'Paris'
+                'country' => $geolocated['country_code'] ?? $settings->get('default_country', 'FR'),  // e.g., 'FR'
+                'city'    => $geolocated['city_name'] ?? $settings->get('default_city', 'Paris'),     // e.g., 'Paris'
             ];
 
             $address = new Address($location);

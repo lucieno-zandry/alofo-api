@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Rules\UsableCoupon;
 use Illuminate\Foundation\Http\FormRequest;
+use Override;
 
 class OrderCreateRequest extends FormRequest
 {
@@ -28,6 +29,14 @@ class OrderCreateRequest extends FormRequest
             'cart_item_ids[*]' => ['numeric'],
             'coupon_id' => ['nullable', new UsableCoupon],
             'shipping_method_id' => ['required', 'exists:shipping_methods,id'],
+            'notes' => ['string'],
         ];
+    }
+
+    public function prepareForValidation()
+    {
+        $this->mergeIfMissing([
+            'notes' => ''
+        ]);
     }
 }

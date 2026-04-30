@@ -30,9 +30,8 @@ class Transaction extends Model
         'user_id',
         'order_uuid',
         'amount',
-        'payment_url',
         'uuid',
-        'method',
+        'payment_method',
         'payment_reference',
         'reviewed_at',
         'reviewed_by',
@@ -41,7 +40,9 @@ class Transaction extends Model
         'dispute_opened_at',
         'dispute_resolved_at',
         'dispute_reason',
-        'type'
+        'type',
+        'payment_method_label',
+        'card_brand',
     ];
 
     protected $casts = [

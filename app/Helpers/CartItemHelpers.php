@@ -5,7 +5,7 @@ namespace App\Helpers;
 use App\Models\CartItem;
 use App\Models\Variant;
 use App\Models\VariantOption;
-use Illuminate\Support\Facades\Log;
+
 
 class CartItemHelpers
 {

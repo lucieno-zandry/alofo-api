@@ -93,6 +93,10 @@ class CurrencyService
             $to = $this->getTo();
         }
 
+        if ($from !== 'EUR' && !isset($rates[$from])) {
+            return $amount;
+        }
+
         // Convert to EUR first if needed
         $inEur = ($from === 'EUR') ? $amount : $amount / $rates[$from];
         return ($to === 'EUR') ? $inEur : $inEur * $rates[$to];

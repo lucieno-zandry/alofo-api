@@ -135,6 +135,7 @@ Route::prefix('coupon')
     ->group(function () {
         Route::get('get/{code}', 'show');
         Route::get('all', 'index');
+        Route::delete('unuse', 'unuse');
 
         Route::middleware('api.auth.approved')->group(function () {
             Route::get('get-by-id/{coupon}', 'showById');

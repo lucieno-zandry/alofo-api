@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
 {
-    use WithOrdering, WithPagination, WithRelationships, CustomerFilterable, DynamicConditionApplicable, ApplyFilters, SoftDeletes, HasEffectivePrice;
+    use CustomerFilterable, ApplyFilters, SoftDeletes, HasEffectivePrice;
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;
@@ -30,6 +30,7 @@ class Order extends Model
 
     protected $fillable = [
         'address_id',
+        'notes'
     ];
 
     public function has_no_successful_payment()

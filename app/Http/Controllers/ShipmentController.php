@@ -14,7 +14,7 @@ use App\Notifications\ShipmentStatusUpdated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
+
 
 class ShipmentController extends Controller
 {
