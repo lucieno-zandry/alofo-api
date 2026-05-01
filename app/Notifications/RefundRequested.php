@@ -37,7 +37,7 @@ class RefundRequested extends Notification implements ShouldQueue
             ->line('A new refund request has been submitted.')
             ->line('Customer: ' . $this->customer->name . ' (' . $this->customer->email . ')')
             ->line('Transaction UUID: ' . $this->transaction->uuid)
-            ->line('Amount: ' . number_format($this->refundRequest->amount, 2))
+            ->line('Amount: ' . Functions::format_money($this->refundRequest->amount))
             ->line('Reason: ' . $this->refundRequest->reason)
             ->action('Review Request', $url);
     }

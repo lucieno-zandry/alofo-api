@@ -2,8 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Helpers\Functions;
 use App\Models\Transaction;
 use App\Models\Order;
+use App\Services\SettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -35,10 +37,10 @@ class PaymentSuccess extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Payment Successful - Order #' . $this->order->uuid)
             ->greeting('Hello ' . $notifiable->name . '!')
-            ->line('Your payment of ' . number_format($this->transaction->amount, 2) . ' has been successfully processed.')
+            ->line('Your payment of ' . Functions::format_money($this->transaction->amount) . ' has been successfully processed.')
             ->line('Order Number: ' . $this->order->uuid)
             ->line('Payment Method: ' . $this->transaction->method)
-            ->line('Total Amount: ' . number_format($this->order->total, 2))
+            ->line('Total Amount: ' . Functions::format_money($this->order->total))
             ->action('View Order Details', url($this->order_detail_url . $this->order->uuid))
             ->line('Thank you for your purchase!');
     }
@@ -55,7 +57,7 @@ class PaymentSuccess extends Notification implements ShouldQueue
             'order_uuid' => $this->order->uuid,
             'amount' => $this->transaction->amount,
             'payment_method' => $this->transaction->method,
-            'message' => 'Your payment of ' . number_format($this->transaction->amount, 2) . ' was successful.',
+            'message' => 'Your payment of ' . Functions::format_money($this->transaction->amount) . ' was successful.',
             'order_total' => $this->order->total,
         ];
     }

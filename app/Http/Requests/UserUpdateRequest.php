@@ -29,7 +29,6 @@ class UserUpdateRequest extends FormRequest
             'email' => ['email', Rule::unique('users')->ignore($this->user?->id)],
             'password' => ['min:6', 'max:32'],
             'name' => ['min:4', 'max:32'],
-            'role' => [Rule::enum(UserRole::class)],
             'image' => ['nullable', 'image'],
             'client_code_id' => ['nullable', 'numeric', new CanBeUsedClientCode],
         ];

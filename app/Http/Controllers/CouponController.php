@@ -17,6 +17,8 @@ class CouponController extends Controller
 
         $coupon = Coupon::create($data);
 
+        $coupon?->convertCurrency();
+
         return [
             'coupon' => $coupon
         ];
@@ -26,6 +28,8 @@ class CouponController extends Controller
     {
         $data = $request->validated();
         $coupon->update($data);
+
+        $coupon?->convertCurrency();
 
         return [
             'coupon' => $coupon

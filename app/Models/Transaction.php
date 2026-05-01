@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Transaction extends Model
 {
-    use WithRelationships, WithPagination, WithOrdering, ApplyFilters, DynamicConditionApplicable, CustomerFilterable, HasEffectivePrice;
+    use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, CustomerFilterable, HasEffectivePrice;
 
     protected $primaryKey = 'uuid';
     public $incrementing = false;

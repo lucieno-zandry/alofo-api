@@ -34,7 +34,7 @@ class RefundApproved extends Notification implements ShouldQueue
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('Your refund request has been approved.')
             ->line('Original Transaction: ' . $this->refundRequest->transaction_uuid)
-            ->line('Refund Amount: ' . number_format($this->refundTransaction->amount, 2))
+            ->line('Refund Amount: ' . Functions::format_money($this->refundTransaction->amount))
             ->line('Reason: ' . $this->refundRequest->reason)
             ->line('The refund is being processed and should appear in your account within 5-7 business days.')
             ->action('View Order', $orderUrl);

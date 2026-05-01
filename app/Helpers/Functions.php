@@ -2,16 +2,12 @@
 
 namespace App\Helpers;
 
-use App\Enums\DiscountType;
-use App\Models\Address;
-use App\Models\Coupon;
 use App\Models\Image;
 use App\Models\Setting;
-use App\Services\CurrencyService;
+use App\Services\SettingService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
-use Storage;
 
 class Functions
 {
@@ -121,5 +117,31 @@ class Functions
             $setting = Setting::find($key);
             return $setting ? $setting->value : $default;
         });
+    }
+
+    public static function format_money(int|float $number): string
+    {
+        $currency = app(SettingService::class)->get('currency', 'EUR');
+        $formated = number_format($number, 2) . ' ' . $currency;
+
+        return $formated;
+    }
+
+    /**
+     * Extracts the username from an email address.
+     *
+     * @param string $email The email address to process.
+     * @return string|null The username part, or null if invalid.
+     */
+    public static function get_email_username(string $email): ?string
+    {
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return null; // Invalid email
+        }
+
+        // Split into username and domain
+        $parts = explode('@', $email, 2);
+        return $parts[0] ?? null;
     }
 }

@@ -184,9 +184,9 @@ class TransactionController extends Controller
         $data['informations']['payment_url'] = urlencode($payment_url);
 
         $transaction = Transaction::create($data);
-        $transaction->informations['payment_url'] = $payment_url;
 
-        FailPendingTransaction::dispatch($transaction->uuid)->delay(now()->addMinutes(10));
+        FailPendingTransaction::dispatch($transaction->uuid)
+            ->delay(now()->addMinutes(10));
 
         Payment::dispatchIf($transaction->status === TransactionStatus::SUCCESS->value, $transaction->order, $transaction);
         FailedPayment::dispatchIf($transaction->status === TransactionStatus::FAILED->value, $transaction->order, $transaction);

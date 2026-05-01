@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class ClientCode extends Model
 {
-    use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable, ApplyFilters;
+    use WithRelationships, WithPagination, WithOrdering, DynamicConditionApplicable;
 
     protected $fillable = [
         'code',
@@ -37,7 +37,7 @@ class ClientCode extends Model
         $this->uses = $this->uses + 1;
         $this->save();
     }
-    
+
     public function users()
     {
         return $this->hasMany(User::class);

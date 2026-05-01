@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\UserRole;
+use App\Helpers\Functions;
 use App\Models\ClientCode;
 use App\Rules\CanBeUsedClientCode;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,7 +34,7 @@ class RegisterRequest extends FormRequest
         return [
             'email' => ['required', 'email', 'unique:users'],
             'password' => ['min:6', 'max:32', 'confirmed'],
-            'name' => ['required', 'min:4', 'max:32'],
+            'name' => ['string', 'min:2', 'max:32'],
             'role' => [Rule::enum(UserRole::class)],
             'avatar_image' => [
                 'nullable',
@@ -51,8 +52,11 @@ class RegisterRequest extends FormRequest
 
     public function prepareForValidation()
     {
+        $name = Functions::get_email_username($this->input('email', '')) ?: '';
+
         $this->mergeIfMissing([
             'role' => UserRole::CLIENT->value,
+            'name' => $name
         ]);
     }
 

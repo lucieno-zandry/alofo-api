@@ -15,7 +15,6 @@ use App\Models\Order;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class OrderController extends Controller
@@ -122,7 +121,7 @@ class OrderController extends Controller
 
     public function index(Request $request)
     {
-        $query = Order::withRelations()->query();
+        $query = Order::withRelations();
 
         /** @var \App\Models\User */
         $user = Auth::user();
@@ -215,7 +214,6 @@ class OrderController extends Controller
 
     public function checkout(OrderCheckoutRequest $request)
     {
-        Log::debug('REQUEST');
         $validated = $request->validated();
 
         $cartItemIds = $validated['cart_items_ids'] ?? [];

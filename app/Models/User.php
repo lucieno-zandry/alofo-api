@@ -79,7 +79,7 @@ class User extends Authenticatable
 
     public function canUseSpecialPrices()
     {
-        return $this->client_code?->isUsable() ?? false;
+        return $this->client_code?->is_active ?? false;
     }
 
     public function canUseSettings()

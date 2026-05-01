@@ -2,8 +2,10 @@
 
 namespace App\Notifications;
 
+use App\Helpers\Functions;
 use App\Models\Transaction;
 use App\Models\Order;
+use App\Services\SettingService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Notification;
@@ -35,10 +37,10 @@ class PaymentFailed extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Payment Failed - Order #' . $this->order->uuid)
             ->greeting('Hello ' . $notifiable->name . ',')
-            ->line('Unfortunately, your payment of ' . number_format($this->transaction->amount, 2) . ' could not be processed.')
+            ->line('Unfortunately, your payment of ' . Functions::format_money($this->transaction->amount) . ' could not be processed.')
             ->line('Order Number: ' . $this->order->uuid)
             ->line('Payment Method: ' . $this->transaction->method)
-            ->line('Amount: ' . number_format($this->order->total, 2))
+            ->line('Amount: ' . Functions::format_money($this->order->total) . app(SettingService::class)->get('currency', 'EUR'))
             ->line('Please try again or use a different payment method.')
             ->action('Retry Payment', $this->order_details_url . $this->order->uuid)
             ->line('If you continue to experience issues, please contact our support team.');
@@ -56,7 +58,7 @@ class PaymentFailed extends Notification implements ShouldQueue
             'order_uuid' => $this->order->uuid,
             'amount' => $this->transaction->amount,
             'payment_method' => $this->transaction->method,
-            'message' => 'Payment of ' . number_format($this->transaction->amount, 2) . ' failed. Please try again.',
+            'message' => 'Payment of ' . Functions::format_money($this->transaction->amount) . ' failed. Please try again.',
             'order_total' => $this->order->total,
         ];
     }

@@ -3,6 +3,7 @@
 
 namespace App\Notifications;
 
+use App\Enums\UserRole;
 use App\Helpers\Functions;
 use App\Models\Transaction;
 use App\Models\User;
@@ -28,7 +29,7 @@ class DisputeOpened extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $url = Functions::get_frontend_url('TRANSACTION_DETAILS', 'ADMIN') . $this->transaction->uuid;
+        $url = Functions::get_frontend_url('TRANSACTION_DETAILS', UserRole::ADMIN->value) . $this->transaction->uuid;
 
         return (new MailMessage)
             ->subject('New Dispute Opened')
@@ -37,7 +38,7 @@ class DisputeOpened extends Notification implements ShouldQueue
             ->line('Customer: ' . $this->customer->name . ' (' . $this->customer->email . ')')
             ->line('Transaction UUID: ' . $this->transaction->uuid)
             ->line('Order UUID: ' . $this->transaction->order_uuid)
-            ->line('Amount: ' . number_format($this->transaction->amount, 2))
+            ->line('Amount: ' . Functions::format_money($this->transaction->amount))
             ->line('Dispute reason: ' . $this->reason)
             ->action('View Transaction', $url);
     }

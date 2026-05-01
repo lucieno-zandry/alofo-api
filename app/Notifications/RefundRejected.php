@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Helpers\Functions;
 use App\Models\RefundRequest;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,7 +29,7 @@ class RefundRejected extends Notification implements ShouldQueue
             ->greeting('Hello ' . $notifiable->name . ',')
             ->line('Your refund request has been reviewed and unfortunately could not be approved.')
             ->line('Transaction: ' . $this->refundRequest->transaction_uuid)
-            ->line('Requested Amount: ' . number_format($this->refundRequest->amount, 2))
+            ->line('Requested Amount: ' . Functions::format_money($this->refundRequest->amount))
             ->line('Reason provided: ' . $this->refundRequest->reason)
             ->line('Admin notes: ' . ($this->refundRequest->admin_notes ?? 'No additional notes.'))
             ->line('If you have any questions, please contact our support team.');

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Helpers\Functions;
 use App\Models\ClientCode;
 use App\Rules\CanBeUsedClientCode;
 use Illuminate\Foundation\Http\FormRequest;
@@ -16,7 +17,7 @@ class AuthUserUpdateRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return !!$this->user('sanctum');
     }
 
     /**
@@ -47,6 +48,18 @@ class AuthUserUpdateRequest extends FormRequest
             }
 
         return $rules;
+    }
+
+    public function prepareForValidation()
+    {
+        if (!$this->user('sanctum')->roleIsGuest() || !$this->input('email')) return;
+
+        $name = Functions::get_email_username($this->input('email'));
+
+        if ($name)
+            $this->mergeIfMissing([
+                'name' => $name
+            ]);
     }
 
     protected function passedValidation(): void

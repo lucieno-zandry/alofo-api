@@ -2,28 +2,23 @@
 
 namespace App\Listeners;
 
+use App\Enums\UserRole;
 use App\Events\ClientCodeUsed;
 use App\Models\User;
 use App\Notifications\Admin\ClientCodeAttached;
 use App\Notifications\Admin\ClientCodeDetached;
+use App\Services\AdminService;
 
 class NotifyAdminsAboutClientCodeUsage
 {
     public function handle(ClientCodeUsed $event): void
     {
-        $admins = User::whereIn('role', ['admin', 'manager'])->get();
+        $admins = app(AdminService::class);
 
         if ($event->action === 'attach') {
-            /** @var \App\Models\User */
-            foreach ($admins as $admin) {
-                if ($admin->hasBeenApproved())
-                    $admin->notify(new ClientCodeAttached($event->user, $event->client_code, $event->performedBy ?? null));
-            }
+            $admins->notify(new ClientCodeAttached($event->user, $event->client_code, $event->performedBy ?? null));
         } else {
-            foreach ($admins as $admin) {
-                if ($admin->hasBeenApproved())
-                    $admin->notify(new ClientCodeDetached($event->user, $event->client_code, $event->performedBy ?? null));
-            }
+            $admins->notify(new ClientCodeDetached($event->user, $event->client_code, $event->performedBy ?? null));
         }
     }
 }

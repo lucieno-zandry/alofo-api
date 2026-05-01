@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Foundation\Support\Providers\RouteServiceProvider;
 
 return [
 
@@ -149,15 +148,7 @@ return [
         Illuminate\Translation\TranslationServiceProvider::class,
         Illuminate\Validation\ValidationServiceProvider::class,
         Illuminate\View\ViewServiceProvider::class,
-
-        // Package Service Providers (if any)
-
-        // Application Service Providers
-        App\Providers\AppServiceProvider::class,
-        App\Providers\AuthServiceProvider::class,
+        Illuminate\Foundation\Support\Providers\RouteServiceProvider::class,
         // App\Providers\BroadcastServiceProvider::class,
-        App\Providers\EventServiceProvider::class,
-        RouteServiceProvider::class,
     ],
-
 ];
