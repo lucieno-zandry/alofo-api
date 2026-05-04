@@ -83,5 +83,15 @@ class SettingSeeder extends Seeder
             'description' => 'Fallback to this city to search shipping methods available.',
             'is_public' => true,
         ]);
+
+        Setting::create([
+            'key' => 'currency_enabled',
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'Internationalization',
+            'label' => 'Enable currency',
+            'description' => 'choose whether if customers can choose another currency.',
+            'is_public' => true,
+        ]);
     }
 }

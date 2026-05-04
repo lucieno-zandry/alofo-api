@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\CurrencyService;
 use App\Services\SettingService;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 
 
@@ -21,6 +22,10 @@ class CurrencyServiceProvider extends ServiceProvider
 
             if ($origin === env('BACKOFFICE_FE_URL'))
                 $allowed = false;
+
+            if (!app(SettingService::class)->get('currency_enabled', true)) {
+                $allowed = false;
+            }
 
             return new CurrencyService(
                 $allowed,
