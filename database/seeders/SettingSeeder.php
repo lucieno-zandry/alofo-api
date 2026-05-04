@@ -93,5 +93,15 @@ class SettingSeeder extends Seeder
             'description' => 'choose whether if customers can choose another currency.',
             'is_public' => true,
         ]);
+
+        Setting::create([
+            'key' => 'client_code_enabled',
+            'value' => true,
+            'type' => 'boolean',
+            'group' => 'Marketing',
+            'label' => 'Enable customer codes',
+            'description' => 'When enabled, customers can enter a client code and access special discounts',
+            'is_public' => true
+        ]);
     }
 }
