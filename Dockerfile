@@ -1,4 +1,4 @@
-FROM php:8.2-apache AS web
+FROM php:8.4-apache AS web
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
@@ -28,14 +28,21 @@ RUN curl -sS https://getcomposer.org/installer | php -- \
     --install-dir=/usr/local/bin \
     --filename=composer
 
+RUN composer diagnose
+
 # Install dependencies WITHOUT running scripts
 RUN composer install \
     --no-dev \
     --optimize-autoloader \
     --no-interaction \
     --no-progress \
-    --no-scripts
+    --no-scripts \
+    -vvv
 
 RUN chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
+
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+ENTRYPOINT ["docker-entrypoint.sh"]
