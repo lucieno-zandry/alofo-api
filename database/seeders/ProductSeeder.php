@@ -15,14 +15,14 @@ class ProductSeeder extends Seeder
     public function run(): void
     {
         // -----------------------------
-        // Categories
+        // Catégories – Vanille & Épices de Madagascar
         // -----------------------------
         $categories = [
-            'Smartphones',
-            'Tablets',
-            'Laptops',
-            'Smartwatches',
-            'Accessories'
+            'Vanille',
+            'Épices',
+            'Huiles Essentielles',
+            'Plantes & Racines séchées',
+            'Coffrets & Produits transformés'
         ];
 
         $categoryModels = [];
@@ -34,184 +34,292 @@ class ProductSeeder extends Seeder
         }
 
         // -----------------------------
-        // Samsung Product Catalog (30)
+        // Catalogue de produits Madagascar (30)
         // -----------------------------
         $products = [
-            // Smartphones
-            ['Galaxy S24', 'Smartphones'],
-            ['Galaxy S24+', 'Smartphones'],
-            ['Galaxy S24 Ultra', 'Smartphones'],
-            ['Galaxy S23 FE', 'Smartphones'],
-            ['Galaxy Z Fold 6', 'Smartphones'],
-            ['Galaxy Z Flip 6', 'Smartphones'],
-            ['Galaxy A55 5G', 'Smartphones'],
-            ['Galaxy A35 5G', 'Smartphones'],
-            ['Galaxy A15', 'Smartphones'],
-            ['Galaxy XCover 7', 'Smartphones'],
+            // Vanille
+            ['Gousses de vanille Bourbon de Madagascar – Grade A', 'Vanille'],
+            ['Gousses de vanille Bourbon – Grade B', 'Vanille'],
+            ['Poudre de vanille pure de Madagascar', 'Vanille'],
+            ['Extrait de vanille bio (double concentré)', 'Vanille'],
+            ['Pâte de vanille Bourbon', 'Vanille'],
+            ['Sucre vanillé artisanal', 'Vanille'],
+            ['Gousses de vanille éclatées (défauts)', 'Vanille'],
+            ['Caviar de vanille (graines)', 'Vanille'],
 
-            // Tablets
-            ['Galaxy Tab S9', 'Tablets'],
-            ['Galaxy Tab S9+', 'Tablets'],
-            ['Galaxy Tab S9 Ultra', 'Tablets'],
-            ['Galaxy Tab A9', 'Tablets'],
-            ['Galaxy Tab A9+', 'Tablets'],
+            // Épices
+            ['Clous de girofle entiers – Madagascar', 'Épices'],
+            ['Poivre sauvage Voatsiperifery', 'Épices'],
+            ['Poivre noir de Sakay', 'Épices'],
+            ['Bâtons de cannelle de Ceylan', 'Épices'],
+            ['Cannelle en poudre de Madagascar', 'Épices'],
+            ['Badiane étoilée entière', 'Épices'],
+            ['Poivre vert en saumure', 'Épices'],
+            ['Gingembre séché en rondelles', 'Épices'],
+            ['Curcuma en poudre (sauvage)', 'Épices'],
+            ['Muscade entière', 'Épices'],
 
-            // Laptops
-            ['Galaxy Book4', 'Laptops'],
-            ['Galaxy Book4 Pro', 'Laptops'],
-            ['Galaxy Book4 Ultra', 'Laptops'],
-            ['Galaxy Book4 360', 'Laptops'],
-            ['Galaxy Chromebook Go', 'Laptops'],
+            // Huiles essentielles
+            ['Huile essentielle d’Ylang-Ylang Extra', 'Huiles Essentielles'],
+            ['Huile essentielle de Ravintsara', 'Huiles Essentielles'],
+            ['Huile essentielle de Niaouli', 'Huiles Essentielles'],
+            ['Huile essentielle de girofle', 'Huiles Essentielles'],
+            ['Huile essentielle de géranium', 'Huiles Essentielles'],
 
-            // Smartwatches
-            ['Galaxy Watch6', 'Smartwatches'],
-            ['Galaxy Watch6 Classic', 'Smartwatches'],
-            ['Galaxy Watch5 Pro', 'Smartwatches'],
-            ['Galaxy Fit3', 'Smartwatches'],
-            ['Galaxy Watch FE', 'Smartwatches'],
+            // Plantes & racines séchées
+            ['Racines de vétiver séchées', 'Plantes & Racines séchées'],
+            ['Citronnelle séchée', 'Plantes & Racines séchées'],
+            ['Poudre de feuilles de moringa', 'Plantes & Racines séchées'],
 
-            // Accessories
-            ['Galaxy Buds2 Pro', 'Accessories'],
-            ['Galaxy Buds FE', 'Accessories'],
-            ['Galaxy SmartTag2', 'Accessories'],
-            ['45W Super Fast Charger', 'Accessories'],
-            ['Galaxy S Pen Pro', 'Accessories'],
+            // Coffrets
+            ['Coffret découverte épices (vanille + girofle + poivre)', 'Coffrets & Produits transformés'],
+            ['Échantillonneur de vanille (5 gousses)', 'Coffrets & Produits transformés'],
+            ['Kit découverte huiles essentielles (5x5ml)', 'Coffrets & Produits transformés']
         ];
 
         foreach ($products as [$title, $categoryName]) {
-
             $product = Product::create([
                 'title' => $title,
-                'slug' => Str::slug($title) . "-" . uuid_create(),
-                'description' => "The {$title} delivers premium Samsung performance with cutting-edge technology, powerful hardware, and sleek design.",
+                'slug' => Str::slug($title) . "-" . Str::uuid(),
+                'description' => "Produit authentique : {$title}. Issu de l'agriculture durable à Madagascar. Qualité premium, arôme riche et saveur exceptionnelle – parfait pour la cuisine, la pâtisserie ou le bien-être.",
                 'category_id' => $categoryModels[$categoryName]->id,
             ]);
 
             // -----------------------------
-            // Variant Logic (Realistic)
+            // Logique de variantes (réaliste pour Madagascar)
             // -----------------------------
 
-            if ($categoryName === 'Smartphones' || $categoryName === 'Tablets') {
-                $this->createDeviceVariants($product);
+            if ($categoryName === 'Vanille') {
+                $this->creerVariantesVanille($product);
             }
 
-            if ($categoryName === 'Laptops') {
-                $this->createLaptopVariants($product);
+            if ($categoryName === 'Épices') {
+                $this->creerVariantesEpices($product);
             }
 
-            if ($categoryName === 'Smartwatches') {
-                $this->createWatchVariants($product);
+            if ($categoryName === 'Huiles Essentielles') {
+                $this->creerVariantesHuilesEssentielles($product);
             }
 
-            if ($categoryName === 'Accessories') {
-                $this->createAccessoryVariant($product);
+            if ($categoryName === 'Plantes & Racines séchées') {
+                $this->creerVariantesPlantesRacines($product);
+            }
+
+            if ($categoryName === 'Coffrets & Produits transformés') {
+                $this->creerVariantesCoffrets($product);
             }
         }
     }
 
-    private function createDeviceVariants(Product $product)
+    private function creerVariantesVanille(Product $product): void
     {
-        $storageGroup = VariantGroup::create([
-            'product_id' => $product->id,
-            'name' => 'Storage'
-        ]);
+        $titre = $product->title;
+        // Gousses, caviar, ou gousses éclatées : grade + poids
+        if (str_contains($titre, 'Gousses') || str_contains($titre, 'Caviar') || str_contains($titre, 'éclatées')) {
+            $groupeGrade = VariantGroup::create([
+                'product_id' => $product->id,
+                'name' => 'Qualité'
+            ]);
+            $groupePoids = VariantGroup::create([
+                'product_id' => $product->id,
+                'name' => 'Poids'
+            ]);
 
-        $colorGroup = VariantGroup::create([
-            'product_id' => $product->id,
-            'name' => 'Color'
-        ]);
+            $grades = ['Bourbon Supérieur', 'Qualité extraction'];
+            $poids = ['50g (3-4 gousses)', '100g (7-8 gousses)', '250g (18-20 gousses)'];
 
-        $storages = ['128GB', '256GB', '512GB'];
-        $colors = ['Black', 'Silver', 'Blue'];
+            $optionsGrade = collect($grades)->map(fn($g) => VariantOption::create([
+                'variant_group_id' => $groupeGrade->id,
+                'value' => $g
+            ]));
 
-        $storageOptions = collect($storages)->map(fn($s) =>
-            VariantOption::create([
-                'variant_group_id' => $storageGroup->id,
-                'value' => $s
-            ])
-        );
+            $optionsPoids = collect($poids)->map(fn($p) => VariantOption::create([
+                'variant_group_id' => $groupePoids->id,
+                'value' => $p
+            ]));
 
-        $colorOptions = collect($colors)->map(fn($c) =>
-            VariantOption::create([
-                'variant_group_id' => $colorGroup->id,
-                'value' => $c
-            ])
-        );
+            foreach ($optionsGrade as $grade) {
+                foreach ($optionsPoids as $poids) {
+                    $variant = Variant::create([
+                        'product_id' => $product->id,
+                        'sku' => strtoupper(Str::slug($product->title . '-' . $grade->value . '-' . $poids->value)),
+                        'price' => rand(12, 100), // euros
+                        'stock' => rand(10, 80)
+                    ]);
+                    $variant->variant_options()->sync([$grade->id, $poids->id]);
+                }
+            }
+        } else {
+            // Poudre, extrait, pâte, sucre – variante simple taille/poids
+            $groupeTaille = VariantGroup::create([
+                'product_id' => $product->id,
+                'name' => 'Format'
+            ]);
 
-        foreach ($storageOptions as $storage) {
-            foreach ($colorOptions as $color) {
+            $tailles = match (true) {
+                str_contains($titre, 'Extrait') => ['50ml', '100ml', '200ml'],
+                str_contains($titre, 'Poudre') => ['50g', '100g', '500g'],
+                str_contains($titre, 'Pâte') => ['60g', '120g'],
+                str_contains($titre, 'Sucre') => ['200g', '500g'],
+                default => ['Petit', 'Moyen', 'Grand']
+            };
 
+            $optionsTaille = collect($tailles)->map(fn($t) => VariantOption::create([
+                'variant_group_id' => $groupeTaille->id,
+                'value' => $t
+            ]));
+
+            foreach ($optionsTaille as $taille) {
                 $variant = Variant::create([
                     'product_id' => $product->id,
-                    'sku' => strtoupper(Str::slug($product->title . '-' . $storage->value . '-' . $color->value)),
-                    'price' => rand(500, 1500),
-                    'stock' => rand(0, 50),
+                    'sku' => strtoupper(Str::slug($product->title . '-' . $taille->value)),
+                    'price' => rand(6, 40),
+                    'stock' => rand(20, 150)
                 ]);
-
-                $variant->variant_options()->sync([$storage->id, $color->id]);
+                $variant->variant_options()->sync([$taille->id]);
             }
         }
     }
 
-    private function createLaptopVariants(Product $product)
+    private function creerVariantesEpices(Product $product): void
     {
-        $ramGroup = VariantGroup::create([
-            'product_id' => $product->id,
-            'name' => 'RAM'
-        ]);
+        $titresAvecForme = [
+            'Clous de girofle entiers – Madagascar',
+            'Poivre noir de Sakay',
+            'Bâtons de cannelle de Ceylan',
+            'Badiane étoilée entière',
+            'Poivre vert en saumure',
+            'Gingembre séché en rondelles',
+            'Muscade entière'
+        ];
 
-        $ramOptions = collect(['8GB', '16GB', '32GB'])->map(fn($ram) =>
-            VariantOption::create([
-                'variant_group_id' => $ramGroup->id,
-                'value' => $ram
-            ])
-        );
-
-        foreach ($ramOptions as $ram) {
-            $variant = Variant::create([
+        if (in_array($product->title, $titresAvecForme)) {
+            $groupeForme = VariantGroup::create([
                 'product_id' => $product->id,
-                'sku' => strtoupper(Str::slug($product->title . '-' . $ram->value)),
-                'price' => rand(900, 2500),
-                'stock' => rand(0, 20),
+                'name' => 'Forme'
+            ]);
+            $groupePoids = VariantGroup::create([
+                'product_id' => $product->id,
+                'name' => 'Poids'
             ]);
 
-            $variant->variant_options()->sync([$ram->id]);
+            $formes = ['Entier', 'Moulu'];
+            if (str_contains($product->title, 'bâtons') || str_contains($product->title, 'Badiane') || str_contains($product->title, 'Muscade')) {
+                $formes = ['Entier'];
+            }
+            if (str_contains($product->title, 'rondelles') || str_contains($product->title, 'saumure')) {
+                $formes = ['Entier'];
+            }
+
+            $poids = ['50g', '100g', '250g'];
+
+            $optionsForme = collect($formes)->map(fn($f) => VariantOption::create([
+                'variant_group_id' => $groupeForme->id,
+                'value' => $f
+            ]));
+
+            $optionsPoids = collect($poids)->map(fn($p) => VariantOption::create([
+                'variant_group_id' => $groupePoids->id,
+                'value' => $p
+            ]));
+
+            foreach ($optionsForme as $forme) {
+                foreach ($optionsPoids as $poids) {
+                    $variant = Variant::create([
+                        'product_id' => $product->id,
+                        'sku' => strtoupper(Str::slug($product->title . '-' . $forme->value . '-' . $poids->value)),
+                        'price' => rand(4, 30),
+                        'stock' => rand(15, 120)
+                    ]);
+                    $variant->variant_options()->sync([$forme->id, $poids->id]);
+                }
+            }
+        } else {
+            // Poudre simple (cannelle en poudre, curcuma)
+            $groupePoids = VariantGroup::create([
+                'product_id' => $product->id,
+                'name' => 'Poids'
+            ]);
+
+            $poids = ['100g', '250g', '500g'];
+            $optionsPoids = collect($poids)->map(fn($p) => VariantOption::create([
+                'variant_group_id' => $groupePoids->id,
+                'value' => $p
+            ]));
+
+            foreach ($optionsPoids as $poids) {
+                $variant = Variant::create([
+                    'product_id' => $product->id,
+                    'sku' => strtoupper(Str::slug($product->title . '-' . $poids->value)),
+                    'price' => rand(5, 25),
+                    'stock' => rand(25, 200)
+                ]);
+                $variant->variant_options()->sync([$poids->id]);
+            }
         }
     }
 
-    private function createWatchVariants(Product $product)
+    private function creerVariantesHuilesEssentielles(Product $product): void
     {
-        $sizeGroup = VariantGroup::create([
+        $groupeVolume = VariantGroup::create([
             'product_id' => $product->id,
-            'name' => 'Size'
+            'name' => 'Volume'
         ]);
 
-        $sizes = collect(['40mm', '44mm'])->map(fn($size) =>
-            VariantOption::create([
-                'variant_group_id' => $sizeGroup->id,
-                'value' => $size
-            ])
-        );
+        $volumes = ['10ml', '30ml', '50ml', '100ml'];
+        $optionsVolume = collect($volumes)->map(fn($v) => VariantOption::create([
+            'variant_group_id' => $groupeVolume->id,
+            'value' => $v
+        ]));
 
-        foreach ($sizes as $size) {
+        foreach ($optionsVolume as $volume) {
             $variant = Variant::create([
                 'product_id' => $product->id,
-                'sku' => strtoupper(Str::slug($product->title . '-' . $size->value)),
-                'price' => rand(250, 500),
-                'stock' => rand(0, 40),
+                'sku' => strtoupper(Str::slug($product->title . '-' . $volume->value)),
+                'price' => rand(10, 60),
+                'stock' => rand(10, 60)
             ]);
-
-            $variant->variant_options()->sync([$size->id]);
+            $variant->variant_options()->sync([$volume->id]);
         }
     }
 
-    private function createAccessoryVariant(Product $product)
+    private function creerVariantesPlantesRacines(Product $product): void
     {
+        $groupePoids = VariantGroup::create([
+            'product_id' => $product->id,
+            'name' => 'Poids'
+        ]);
+
+        $poids = match (true) {
+            str_contains($product->title, 'vétiver') => ['100g', '250g', '500g'],
+            str_contains($product->title, 'Citronnelle') => ['50g', '100g', '200g'],
+            default => ['100g', '250g']
+        };
+
+        $optionsPoids = collect($poids)->map(fn($p) => VariantOption::create([
+            'variant_group_id' => $groupePoids->id,
+            'value' => $p
+        ]));
+
+        foreach ($optionsPoids as $poids) {
+            $variant = Variant::create([
+                'product_id' => $product->id,
+                'sku' => strtoupper(Str::slug($product->title . '-' . $poids->value)),
+                'price' => rand(6, 28),
+                'stock' => rand(20, 90)
+            ]);
+            $variant->variant_options()->sync([$poids->id]);
+        }
+    }
+
+    private function creerVariantesCoffrets(Product $product): void
+    {
+        // Coffrets : pas de variante (article unique) ou parfois un format unique
         Variant::create([
             'product_id' => $product->id,
-            'sku' => strtoupper(Str::slug($product->title)),
-            'price' => rand(30, 200),
-            'stock' => rand(0, 100),
+            'sku' => strtoupper(Str::slug($product->title)) . '-BOX',
+            'price' => rand(25, 55),
+            'stock' => rand(5, 40)
         ]);
     }
 }

@@ -12,15 +12,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
-        // User::factory()->create([
-        //     'name' => 'John Doe',
-        //     'email' => 'john@doe.com',
-        //     'role' => 'admin',
-        //     'approved_at' => now()
-        // ]);
-
         $this->call(ProductSeeder::class);
         $this->call(CouponSeeder::class);
         $this->call(ClientCodeSeeder::class);
