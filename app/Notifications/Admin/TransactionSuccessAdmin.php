@@ -37,7 +37,7 @@ class TransactionSuccessAdmin extends Notification implements ShouldQueue
             ->line('**Amount:** ' . Functions::format_money($this->transaction->amount))
             ->line('**Payment Method:** ' . $this->transaction->method)
             ->line('**Order Total:** ' . Functions::format_money($this->order->total))
-            ->action('View Order', Functions::get_frontend_url('ADMIN_ORDER_DETAILS_PATHNAME', UserRole::ADMIN->value) . $this->order->uuid)
+            ->action('View Order', Functions::get_frontend_url('admin_order_details_pathname', UserRole::ADMIN->value) . $this->order->uuid)
             ->line('Please proceed with fulfillment if not already processed.');
     }
 

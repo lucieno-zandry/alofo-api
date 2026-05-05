@@ -24,7 +24,7 @@ class NotifyBuyerTransactionSuccess implements ShouldQueue
     {
         $order = $event->order;
         $transaction = $event->transaction;
-        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
+        $order_detail_url = Functions::get_frontend_url("customer_order_details_pathname");
 
         /** @var \App\Models\User */
         $user = $order->user;

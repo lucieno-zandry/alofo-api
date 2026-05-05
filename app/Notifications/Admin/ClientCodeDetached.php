@@ -28,7 +28,7 @@ class ClientCodeDetached extends Notification implements ShouldQueue
     public function toMail($notifiable): MailMessage
     {
         $line = "Client code '{$this->clientCode->code}' was detached from user {$this->user->name}.";
-        $url = Functions::get_frontend_url('USER_DETAIL_PAGE_PATHNAME', 'ADMIN') . $this->user->id;
+        $url = Functions::get_frontend_url('user_detail_page_pathname', 'ADMIN') . $this->user->id;
 
         if ($this->performedBy) {
             $line .= " Action performed by {$this->performedBy->name}.";

@@ -38,7 +38,7 @@ class UserStatusChangedNotification extends Notification implements ShouldQueue
     {
         $subject = 'Account Status Update';
         $greeting = "Hello {$notifiable->name},";
-        $url = Functions::get_frontend_url('ACCOUNT_SETTINGS_PATHNAME');
+        $url = Functions::get_frontend_url('account_settings_pathname');
 
         return (new MailMessage)
             ->subject($subject)

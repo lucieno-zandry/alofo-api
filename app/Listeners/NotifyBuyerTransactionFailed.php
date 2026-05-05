@@ -24,7 +24,7 @@ class NotifyBuyerTransactionFailed implements ShouldQueue
     {
         $order = $event->order;
         $transaction = $event->transaction;
-        $order_detail_url = Functions::get_frontend_url("CUSTOMER_ORDER_DETAILS_PATHNAME");
+        $order_detail_url = Functions::get_order_detail_page_url($order->uuid);
 
         /** @var \App\Models\User */
         $user = $order->user;

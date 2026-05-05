@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Events\ClientCodeUsed;
+use App\Events\NewCollaboratorRegistered;
+use App\Events\UserEmailVerified;
 use App\Helpers\CartItemHelpers;
 use App\Helpers\EmailConfirmationHelpers;
 use App\Helpers\Functions;
@@ -209,7 +211,7 @@ class AuthController extends Controller
             'email' => $request->email,
         ]);
 
-        $reset_url = Functions::get_frontend_url('PASSWORD_RESET_PATHNAME', $user->role) . $token;
+        $reset_url = Functions::get_frontend_url('password_reset_pathname', $user->role) . $token;
 
         $link_sent = Mail::to($user)
             ->send(new ResetMail($reset_url));
@@ -246,7 +248,7 @@ class AuthController extends Controller
 
         if (!$user->email_verified_at)
             $user->email_verified_at = now();
-        
+
         $user->password = $request->password;
         $user->save();
 
@@ -352,6 +354,9 @@ class AuthController extends Controller
         if ($user->roleIsCustomer() && !$user->hasBeenApproved()) {
             $user->approve(set_by: null);
         }
+
+        UserEmailVerified::dispatchIf($user->roleIsCustomer(), $user);
+        NewCollaboratorRegistered::dispatchIf(!$user->roleIsCustomer(), $user);
 
         return [
             'user' => $user

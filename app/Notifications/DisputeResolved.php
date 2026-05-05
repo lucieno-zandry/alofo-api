@@ -27,7 +27,7 @@ class DisputeResolved extends Notification implements ShouldQueue
 
     public function toMail($notifiable): MailMessage
     {
-        $orderUrl = Functions::get_frontend_url('CUSTOMER_ORDER_DETAILS_PATHNAME') . $this->transaction->order_uuid;
+        $orderUrl = Functions::get_frontend_url('customer_order_details_pathname') . $this->transaction->order_uuid;
 
         return (new MailMessage)
             ->subject('Dispute Resolution Update')

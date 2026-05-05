@@ -2,6 +2,7 @@
 
 namespace App\Helpers;
 
+use App\Enums\UserRole;
 use App\Models\Image;
 use App\Models\Setting;
 use App\Services\SettingService;
@@ -87,28 +88,43 @@ class Functions
         return $lang;
     }
 
-    public static function get_frontend_url(?string $env_pathname = null, string $user_role = 'CLIENT')
+    public static function get_frontend_url(?string $urls_config_key = null, string $user_role = 'CLIENT')
     {
-        $env_fe_url = strtolower($user_role) === 'client' ? env('FRONT_OFFICE_FE_URL') : env('BACKOFFICE_FE_URL');
+        $fe_url_key = strtolower($user_role) === 'client'
+            ? 'urls.front_office_fe_url'
+            : 'urls.backoffice_fe_url';
 
-        $frontend_url = request()->get('origin', $env_fe_url);
+        $fe_url = config($fe_url_key);                       // always defined
+
+        $frontend_url = request()->get('origin', $fe_url);
         $lang = self::get_lang();
         $url = "$frontend_url/$lang";
 
-        $pathname = $env_pathname ? env($env_pathname) : null;
+        $pathname = $urls_config_key
+            ? config("urls.{$urls_config_key}")   // e.g. config('urls.account_settings_pathname')
+            : null;
 
-        if ($pathname)
+        if ($pathname) {
             $url = "$url/$pathname";
+        }
 
         return $url;
     }
 
     public static function get_order_detail_page_url(string $order_uuid): string
     {
-        $frontend_url = self::get_frontend_url('CUSTOMER_ORDER_DETAILS_PATHNAME');
+        $frontend_url = self::get_frontend_url('customer_order_details_pathname');
         $redirect_url = $frontend_url . $order_uuid;
 
         return $redirect_url;
+    }
+
+    public static function get_user_detail_page_url(string|int $user_id)
+    {
+        $frontend_url = self::get_frontend_url('admin_user_details_pathname', UserRole::ADMIN->value);
+        $url = $frontend_url . $user_id;
+
+        return $url;
     }
 
     public static function setting(string $key, $default = null)

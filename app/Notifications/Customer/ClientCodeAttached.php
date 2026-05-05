@@ -27,7 +27,7 @@ class ClientCodeAttached extends Notification implements ShouldQueue
     public function toMail($notifiable): MailMessage
     {
         $line = "You now have access to exclusive promotions with client code '{$this->clientCode->code}'! Enjoy special discounts on eligible products.";
-        $url = Functions::get_frontend_url('PRODUCTS_PAGE_PATHNAME');
+        $url = Functions::get_frontend_url('products_page_pathname');
 
         return (new MailMessage)
             ->subject('You have received a client code!')

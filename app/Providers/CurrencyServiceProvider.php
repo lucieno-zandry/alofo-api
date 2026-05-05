@@ -20,7 +20,7 @@ class CurrencyServiceProvider extends ServiceProvider
             $allowed = true;
             $origin = request()->header('origin');
 
-            if ($origin === env('BACKOFFICE_FE_URL'))
+            if ($origin === config('urls.backoffice_fe_url'))
                 $allowed = false;
 
             if (!app(SettingService::class)->get('currency_enabled', true)) {

@@ -27,7 +27,7 @@ class ClientCodeDetached extends Notification implements ShouldQueue
     public function toMail($notifiable): MailMessage
     {
         $line = "Your client code '{$this->clientCode->code}' has been removed. You will no longer receive exclusive promotions associated with this code.";
-        $url = Functions::get_frontend_url('CONTACT_PAGE_PATHNAME', 'USER'); // e.g., contact page for support
+        $url = Functions::get_frontend_url('contact_page_pathname', 'USER'); // e.g., contact page for support
 
         return (new MailMessage)
             ->subject('Client Code Removed')

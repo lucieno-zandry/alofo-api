@@ -42,7 +42,7 @@ class PaymentFailed extends Notification implements ShouldQueue
             ->line('Payment Method: ' . $this->transaction->method)
             ->line('Amount: ' . Functions::format_money($this->order->total))
             ->line('Please try again or use a different payment method.')
-            ->action('Retry Payment', $this->order_details_url . $this->order->uuid)
+            ->action('Retry Payment', $this->order_details_url)
             ->line('If you continue to experience issues, please contact our support team.');
     }
 

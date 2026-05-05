@@ -17,7 +17,7 @@ class EnsureEmailIsVerified
     public function handle(Request $request, Closure $next): Response
     {
         if (!$request->user() || !$request->user()->hasVerifiedEmail()) {
-            $redirect_url = Functions::get_frontend_url('EMAIL_VERIFY_PATHNAME', $request->user()->role);
+            $redirect_url = Functions::get_frontend_url('email_verify_pathname', $request->user()->role);
 
             return response()->json([
                 'message' => 'Email verification required.',

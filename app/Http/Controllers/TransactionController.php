@@ -174,7 +174,7 @@ class TransactionController extends Controller
 
         $token = request()->header('Authorization');
         $redirect_url = Functions::get_order_detail_page_url($request->order_uuid);
-        $payment_url = env('PAYMENT_HOST') . "/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
+        $payment_url = config('urls.payment_host') . "/index.html?amount={$amount}&transaction_uuid={$uuid}&token={$token}&redirect_url={$redirect_url}&currency={$currency}";
 
         // Extract searchable reference from informations if present
         if (!empty($data['informations']['reference'])) {
