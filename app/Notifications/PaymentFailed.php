@@ -40,7 +40,7 @@ class PaymentFailed extends Notification implements ShouldQueue
             ->line('Unfortunately, your payment of ' . Functions::format_money($this->transaction->amount) . ' could not be processed.')
             ->line('Order Number: ' . $this->order->uuid)
             ->line('Payment Method: ' . $this->transaction->method)
-            ->line('Amount: ' . Functions::format_money($this->order->total) . app(SettingService::class)->get('currency', 'EUR'))
+            ->line('Amount: ' . Functions::format_money($this->order->total))
             ->line('Please try again or use a different payment method.')
             ->action('Retry Payment', $this->order_details_url . $this->order->uuid)
             ->line('If you continue to experience issues, please contact our support team.');
