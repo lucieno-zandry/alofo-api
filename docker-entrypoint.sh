@@ -1,18 +1,43 @@
 #!/bin/sh
 set -e
+set -x  # optional: remove in production if too verbose
 
-# Run migrations
-php artisan migrate --force
+cd /var/www/html
 
-# Link storage
-php artisan storage:link
+echo "📁 Ensuring required directories exist..."
 
-# Flush, then import Laravel Scout models
-php artisan scout:flush "App\Models\Product"
-php artisan scout:import "App\Models\Product"
+# Required Laravel directories (important with mounted volumes)
+mkdir -p storage/framework/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/logs
+mkdir -p bootstrap/cache
 
-# Start Laravel queue worker in background
-php artisan queue:work --daemon &
+echo "🔐 Fixing permissions..."
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
-# Start Apache in foreground
-apache2-foreground
+echo "🧹 Clearing caches..."
+php artisan config:clear || true
+php artisan cache:clear || true
+php artisan view:clear || true
+php artisan route:clear || true
+
+echo "🔧 Caching config..."
+php artisan config:cache || true
+
+echo "🗄️ Running migrations..."
+php artisan migrate --force || true
+
+echo "🔗 Linking storage..."
+php artisan storage:link || true
+
+echo "🔍 Syncing Scout indexes..."
+php artisan scout:flush "App\\Models\\Product" || true
+php artisan scout:import "App\\Models\\Product" || true
+
+echo "⚙️ Starting queue worker..."
+php artisan queue:work --daemon --tries=3 --timeout=90 &
+
+echo "🚀 Starting Apache..."
+exec apache2-foreground
